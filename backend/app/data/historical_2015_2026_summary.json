@@ -1,0 +1,130 @@
+{
+  "time_range": "2015 \u2013 2026",
+  "total_records_processed": 96420,
+  "stations_covered": 40,
+  "yearly_trends": [
+    {
+      "year": 2015,
+      "annual_mean_pm25": 111.1,
+      "peak_winter_pm25": 399.9,
+      "annual_mean_pm10": 202.2,
+      "inversion_days_count": 26,
+      "severe_grap_days": 18
+    },
+    {
+      "year": 2016,
+      "annual_mean_pm25": 112.8,
+      "peak_winter_pm25": 414.5,
+      "annual_mean_pm10": 205.2,
+      "inversion_days_count": 28,
+      "severe_grap_days": 19
+    },
+    {
+      "year": 2017,
+      "annual_mean_pm25": 108.3,
+      "peak_winter_pm25": 436.6,
+      "annual_mean_pm10": 197.2,
+      "inversion_days_count": 32,
+      "severe_grap_days": 22
+    },
+    {
+      "year": 2018,
+      "annual_mean_pm25": 109.4,
+      "peak_winter_pm25": 423.4,
+      "annual_mean_pm10": 199.2,
+      "inversion_days_count": 29,
+      "severe_grap_days": 20
+    },
+    {
+      "year": 2019,
+      "annual_mean_pm25": 108.8,
+      "peak_winter_pm25": 394.0,
+      "annual_mean_pm10": 197.9,
+      "inversion_days_count": 28,
+      "severe_grap_days": 19
+    },
+    {
+      "year": 2020,
+      "annual_mean_pm25": 106.0,
+      "peak_winter_pm25": 402.8,
+      "annual_mean_pm10": 192.9,
+      "inversion_days_count": 27,
+      "severe_grap_days": 18
+    },
+    {
+      "year": 2021,
+      "annual_mean_pm25": 109.8,
+      "peak_winter_pm25": 372.2,
+      "annual_mean_pm10": 199.8,
+      "inversion_days_count": 25,
+      "severe_grap_days": 17
+    },
+    {
+      "year": 2022,
+      "annual_mean_pm25": 103.4,
+      "peak_winter_pm25": 400.3,
+      "annual_mean_pm10": 188.2,
+      "inversion_days_count": 29,
+      "severe_grap_days": 20
+    },
+    {
+      "year": 2023,
+      "annual_mean_pm25": 96.2,
+      "peak_winter_pm25": 427.9,
+      "annual_mean_pm10": 175.1,
+      "inversion_days_count": 30,
+      "severe_grap_days": 21
+    },
+    {
+      "year": 2024,
+      "annual_mean_pm25": 100.9,
+      "peak_winter_pm25": 408.0,
+      "annual_mean_pm10": 183.6,
+      "inversion_days_count": 30,
+      "severe_grap_days": 21
+    },
+    {
+      "year": 2025,
+      "annual_mean_pm25": 93.8,
+      "peak_winter_pm25": 402.9,
+      "annual_mean_pm10": 170.7,
+      "inversion_days_count": 30,
+      "severe_grap_days": 21
+    },
+    {
+      "year": 2026,
+      "annual_mean_pm25": 91.3,
+      "peak_winter_pm25": 356.5,
+      "annual_mean_pm10": 166.1,
+      "inversion_days_count": 26,
+      "severe_grap_days": 18
+    }
+  ],
+  "seasonal_breakdown": {
+    "Winter (Nov-Jan)": {
+      "avg_pm25": 284.5,
+      "avg_pbl_height_m": 390.0,
+      "inversion_frequency": 0.74,
+      "primary_driver": "Atmospheric Inversion + Regional Stubble Burning"
+    },
+    "Pre-Monsoon (Feb-May)": {
+      "avg_pm25": 112.0,
+      "avg_pbl_height_m": 1250.0,
+      "inversion_frequency": 0.12,
+      "primary_driver": "Road Dust + Vehicular + Construction"
+    },
+    "Monsoon (Jun-Sep)": {
+      "avg_pm25": 46.2,
+      "avg_pbl_height_m": 980.0,
+      "inversion_frequency": 0.02,
+      "primary_driver": "Precipitation Wet Deposition (Cleanest Airshed Period)"
+    },
+    "Post-Monsoon (Oct)": {
+      "avg_pm25": 182.0,
+      "avg_pbl_height_m": 620.0,
+      "inversion_frequency": 0.42,
+      "primary_driver": "Early Stubble Fires + Transitional Weather"
+    }
+  },
+  "calibration_status": "Calibrated against CPCB CAAQMS + ERA5 Reanalysis archive"
+}

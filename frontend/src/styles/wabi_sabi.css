@@ -1,0 +1,474 @@
+/* ==========================================================================
+   VAAYU — WABI-SABI DESIGN SYSTEM (PURE ORGANIC AESTHETIC)
+   Earthy, serene, matte surfaces, quiet breathing room, natural typography
+   ========================================================================== */
+
+:root {
+  /* Surfaces & Canvas */
+  --color-canvas: #F7F5F0;
+  --color-surface: #EFECE6;
+  --color-surface-elevated: #E7E3DA;
+  --color-border: #D5CEBF;
+  --color-border-subtle: rgba(120, 110, 95, 0.18);
+
+  /* Typography */
+  --font-heading: 'Instrument Serif', Georgia, serif;
+  --font-body: 'Plus Jakarta Sans', -apple-system, system-ui, sans-serif;
+  --font-vernacular: 'Noto Sans Devanagari', sans-serif;
+  --font-code: 'JetBrains Mono', monospace;
+
+  /* Text Colors */
+  --text-primary: #23211D;
+  --text-secondary: #7C776D;
+  --text-faint: #A8A398;
+  --text-inverse: #F7F5F0;
+
+  /* Standard AQI Categories (Earthy, Non-Garish) */
+  --aqi-good: #3F5E4D;        /* Forest Moss */
+  --aqi-satisfactory: #657849;/* Sage Leaf */
+  --aqi-moderate: #B88B4A;    /* Warm Ochre */
+  --aqi-poor: #BA5D3F;        /* Terracotta Clay */
+  --aqi-very-poor: #9E3B2F;   /* Smoked Rust */
+  --aqi-severe: #5A2C37;      /* Burnt Plum */
+
+  /* Atmospheric & Feature Accents */
+  --accent-inversion: #A87948; /* Burnished Brass */
+  --accent-plume: #C24D36;     /* Ember Red */
+  --accent-wind: #8DA399;      /* Celadon Slate */
+  --accent-health: #384D5E;    /* Mineral Blue */
+
+  /* Geometry & Radii */
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-full: 9999px;
+
+  /* Ambient Overcast Shadows */
+  --shadow-sm: 0 1px 3px rgba(45, 40, 32, 0.04);
+  --shadow-card: 0 4px 20px -2px rgba(45, 40, 32, 0.05), 0 1px 3px rgba(45, 40, 32, 0.03);
+  --shadow-elevated: 0 12px 32px -4px rgba(45, 40, 32, 0.08);
+
+  /* Transitions */
+  --ease-natural: cubic-bezier(0.22, 1, 0.36, 1);
+  --duration-normal: 320ms;
+}
+
+[data-theme="dark"] {
+  --color-canvas: #151413;
+  --color-surface: #1E1C1A;
+  --color-surface-elevated: #282522;
+  --color-border: #38332E;
+  --color-border-subtle: rgba(255, 255, 255, 0.08);
+
+  --text-primary: #EAE6DF;
+  --text-secondary: #8F897F;
+  --text-faint: #5C564D;
+  --text-inverse: #151413;
+
+  --aqi-good: #527863;
+  --aqi-satisfactory: #7D945B;
+  --aqi-moderate: #CFA058;
+  --aqi-poor: #D16E4E;
+  --aqi-very-poor: #B84B3C;
+  --aqi-severe: #7A3A49;
+
+  --shadow-card: 0 4px 24px -2px rgba(0, 0, 0, 0.35);
+  --shadow-elevated: 0 16px 40px -4px rgba(0, 0, 0, 0.50);
+}
+
+/* Base Resets */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background-color: var(--color-canvas);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  line-height: 1.5;
+  transition: background-color var(--duration-normal) var(--ease-natural),
+              color var(--duration-normal) var(--ease-natural);
+}
+
+/* Typography Utility */
+h1, h2, h3, .heading-serif {
+  font-family: var(--font-heading);
+  font-weight: 400;
+  letter-spacing: -0.015em;
+}
+
+.mono {
+  font-family: var(--font-code);
+}
+
+.vernacular {
+  font-family: var(--font-vernacular);
+}
+
+/* Layout Containers */
+.app-shell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.container {
+  width: 100%;
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 0 28px;
+}
+
+/* Top Navigation Bar */
+.navbar {
+  border-bottom: 1px solid var(--color-border-subtle);
+  background-color: var(--color-canvas);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  backdrop-filter: blur(8px);
+}
+
+.nav-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 72px;
+}
+
+.brand-group {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.brand-title {
+  font-size: 2.25rem;
+  line-height: 1;
+  color: var(--text-primary);
+}
+
+.brand-subtitle {
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.nav-controls {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+/* Zen Buttons & Pills */
+.btn-zen {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 18px;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  color: var(--text-primary);
+  border-radius: var(--radius-full);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 200ms var(--ease-natural);
+}
+
+.btn-zen:hover {
+  background-color: var(--color-surface-elevated);
+  transform: translateY(-1px);
+}
+
+.btn-zen.primary {
+  background-color: var(--text-primary);
+  color: var(--text-inverse);
+  border-color: var(--text-primary);
+}
+
+.btn-zen.primary:hover {
+  opacity: 0.92;
+}
+
+/* Main Dashboard Grid */
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 420px 1fr;
+  gap: 28px;
+  padding: 32px 0 64px;
+}
+
+@media (max-width: 1080px) {
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Card Foundations */
+.card-zen {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  padding: 24px;
+  box-shadow: var(--shadow-card);
+  transition: box-shadow 300ms var(--ease-natural);
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.card-title {
+  font-size: 1.35rem;
+  color: var(--text-primary);
+}
+
+.card-badge {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  background-color: var(--color-surface-elevated);
+  color: var(--text-secondary);
+}
+
+/* Atmospheric Inversion Strata Cross-Section */
+.inversion-strata-container {
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  border: 1px solid var(--color-border-subtle);
+  background-color: var(--color-surface-elevated);
+  margin-top: 14px;
+}
+
+.strata-upper-sky {
+  padding: 16px 20px;
+  background: linear-gradient(180deg, rgba(141, 163, 153, 0.25) 0%, rgba(141, 163, 153, 0.12) 100%);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+}
+
+.strata-inversion-boundary {
+  padding: 10px 20px;
+  background-color: rgba(168, 121, 72, 0.22);
+  border-top: 2px solid var(--accent-inversion);
+  border-bottom: 2px dashed rgba(168, 121, 72, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+}
+
+.inversion-glow-line {
+  position: absolute;
+  top: -2px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--accent-inversion);
+  box-shadow: 0 0 10px rgba(168, 121, 72, 0.8);
+  animation: pulseInversion 4s ease-in-out infinite alternate;
+}
+
+@keyframes pulseInversion {
+  0% { opacity: 0.6; }
+  100% { opacity: 1; }
+}
+
+.strata-trapped-zone {
+  padding: 24px 20px;
+  background: linear-gradient(180deg, rgba(90, 44, 55, 0.15) 0%, rgba(186, 93, 63, 0.20) 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+.trapped-ground-label {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+}
+
+.delta-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background-color: rgba(168, 121, 72, 0.15);
+  border: 1px solid var(--accent-inversion);
+  border-radius: var(--radius-full);
+  font-size: 0.75rem;
+  font-family: var(--font-code);
+  color: var(--accent-inversion);
+  margin-top: 14px;
+}
+
+/* Plume & Wind Map Wrapper */
+.map-container {
+  height: 480px;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  border: 1px solid var(--color-border-subtle);
+  position: relative;
+}
+
+/* Multi-Horizon Horizon Tabs */
+.horizon-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.horizon-tab {
+  padding: 6px 14px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--color-border);
+  background-color: var(--color-surface);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 180ms ease;
+}
+
+.horizon-tab.active {
+  background-color: var(--text-primary);
+  color: var(--text-inverse);
+  border-color: var(--text-primary);
+}
+
+/* GRAP Compliance Notice Document */
+.grap-document {
+  background-color: var(--color-surface-elevated);
+  border-left: 4px solid var(--aqi-severe);
+  border-radius: var(--radius-sm);
+  padding: 20px 24px;
+  margin-top: 16px;
+}
+
+.grap-document-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.grap-stage-tag {
+  padding: 4px 12px;
+  border-radius: 4px;
+  background-color: var(--aqi-severe);
+  color: #FFFFFF;
+  font-weight: 600;
+  font-size: 0.8125rem;
+  letter-spacing: 0.04em;
+}
+
+.grap-checklist {
+  list-style: none;
+  margin: 16px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.grap-checklist li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 0.875rem;
+  line-height: 1.45;
+  color: var(--text-primary);
+}
+
+.grap-check-icon {
+  margin-top: 3px;
+  color: var(--aqi-severe);
+}
+
+/* Voice Advisory Modal & Overlay */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(21, 20, 19, 0.65);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  padding: 20px;
+}
+
+.modal-content {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  max-width: 580px;
+  width: 100%;
+  padding: 36px;
+  box-shadow: var(--shadow-elevated);
+  position: relative;
+}
+
+.voice-mic-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 28px 0;
+}
+
+.btn-mic {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background-color: var(--color-surface-elevated);
+  border: 2px solid var(--color-border);
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 250ms var(--ease-natural);
+}
+
+.btn-mic:hover {
+  transform: scale(1.05);
+  border-color: var(--accent-health);
+}
+
+.btn-mic.recording {
+  background-color: var(--accent-plume);
+  color: #FFFFFF;
+  border-color: var(--accent-plume);
+  animation: pulseMic 1.5s infinite;
+}
+
+@keyframes pulseMic {
+  0% { box-shadow: 0 0 0 0 rgba(194, 77, 54, 0.4); }
+  70% { box-shadow: 0 0 0 20px rgba(194, 77, 54, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(194, 77, 54, 0); }
+}
+
+.advisory-response-bubble {
+  background-color: var(--color-surface-elevated);
+  border-radius: var(--radius-md);
+  padding: 20px;
+  margin-top: 20px;
+  border-left: 3px solid var(--accent-health);
+}
