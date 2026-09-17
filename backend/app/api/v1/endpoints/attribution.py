@@ -7,15 +7,28 @@ from backend.app.services.attribution.source_classifier import source_classifier
 from backend.app.services.attribution.plume_dispersion import plume_tracker
 from backend.app.services.forecasting.inversion_module import inversion_module
 
+import time
+
 router = APIRouter()
 
+_ATTRIBUTION_CACHE = {}
+_CACHE_TTL_SEC = 300
+
 @router.get("")
-async def get_attribution_and_plumes(winter_simulation: bool = False) -> Dict[str, Any]:
+async def get_attribution_and_plumes(winter_simulation: bool = False, force_refresh: bool = False) -> Dict[str, Any]:
     """
     Returns source apportionment breakdown, active NASA FIRMS fire markers,
     and 72-hour forward stubble-burning plume dispersion model.
     Supports winter_simulation mode to evaluate the peak North-Westerly stubble smog corridor.
+    Includes 5-minute caching for rock-solid stability and instant loading.
     """
+    cache_key = winter_simulation
+    now = time.time()
+    if not force_refresh and cache_key in _ATTRIBUTION_CACHE:
+        cached_entry, cached_time = _ATTRIBUTION_CACHE[cache_key]
+        if now - cached_time < _CACHE_TTL_SEC:
+            return cached_entry
+
     # 1. Fetch live inputs
     if winter_simulation:
         fires = firms_client._generate_representative_fires()
@@ -43,13 +56,11 @@ async def get_attribution_and_plumes(winter_simulation: bool = False) -> Dict[st
         temp = current_w.get("temperature", 32.0)
         rh = current_w.get("relative_humidity", 60.0)
         
-        now_hour = 16
-        if "timestamp" in current_w and "T" in current_w["timestamp"]:
-            try:
-                now_hour = int(current_w["timestamp"].split("T")[1].split(":")[0])
-            except Exception:
-                pass
-        is_night = now_hour < 6 or now_hour >= 19
+        # Authoritative Indian Standard Time (IST = UTC + 5:30) for Delhi NCR airshed
+        from datetime import datetime, timezone, timedelta
+        ist_tz = timezone(timedelta(hours=5, minutes=30))
+        now_ist = datetime.now(timezone.utc).astimezone(ist_tz)
+        is_night = (now_ist.hour >= 19 or now_ist.hour < 6)
         
         inv_state = inversion_module.compute_isi(pbl, wind_spd, temp, rh, is_nighttime=is_night)
         isi = inv_state["inversion_severity_index"]
@@ -79,8 +90,8 @@ async def get_attribution_and_plumes(winter_simulation: bool = False) -> Dict[st
         isi=isi
     )
     
-    return {
-        "seasonal_mode": "Winter Smog Episode (315° NW Corridor • 57 Active Fires)" if winter_simulation else "Live Synoptic Meteorology (Open-Meteo Sensor Stream)",
+    res_payload = {
+        "seasonal_mode": f"Winter Smog Episode (315° NW Corridor • {len(fires)} Active Satellite Clusters)" if winter_simulation else "Live Synoptic Meteorology (Open-Meteo Sensor Stream)",
         "is_winter_simulation": winter_simulation,
         "source_apportionment": apportionment,
         "active_fires_detected": {
@@ -98,3 +109,5 @@ async def get_attribution_and_plumes(winter_simulation: bool = False) -> Dict[st
             }
         }
     }
+    _ATTRIBUTION_CACHE[cache_key] = (res_payload, now)
+    return res_payload

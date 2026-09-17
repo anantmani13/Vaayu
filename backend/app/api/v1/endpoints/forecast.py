@@ -8,18 +8,31 @@ from backend.app.services.forecasting.inversion_module import inversion_module
 
 router = APIRouter()
 
+import time
 from typing import Optional
+
+_FORECAST_CACHE = {}
+_CACHE_TTL_SEC = 300
 
 @router.get("/delhi")
 async def get_delhi_forecast(
     winter_simulation: bool = False,
-    station_id: Optional[str] = None
+    station_id: Optional[str] = None,
+    force_refresh: bool = False
 ) -> Dict[str, Any]:
     """
     Returns live atmospheric state, Inversion Severity Index (ISI),
     and 72-hour coupled weather-chemistry forecast with Coupling Delta.
     Supports station-specific coupled forecast calibration via station_id.
+    Includes 5-minute response caching to eliminate latency and prevent value jitter.
     """
+    cache_key = (winter_simulation, station_id)
+    now = time.time()
+    if not force_refresh and cache_key in _FORECAST_CACHE:
+        entry, ts = _FORECAST_CACHE[cache_key]
+        if now - ts < _CACHE_TTL_SEC:
+            return entry
+
     # 1. Fetch live weather, stations, fires & chemistry
     weather_data = await weather_client.fetch_meteorology()
     stations = await cpcb_client.fetch_all_stations()
@@ -66,14 +79,11 @@ async def get_delhi_forecast(
     current_weather = weather_data.get("current", {})
     hourly_weather = weather_data.get("hourly", [])
     
-    # Determine if current time is nighttime
-    now_hour = 16
-    if "timestamp" in current_weather and "T" in current_weather["timestamp"]:
-        try:
-            now_hour = int(current_weather["timestamp"].split("T")[1].split(":")[0])
-        except Exception:
-            pass
-    is_night = now_hour < 6 or now_hour >= 19
+    # Authoritative Indian Standard Time (IST = UTC + 5:30) for Delhi NCR airshed
+    from datetime import datetime, timezone, timedelta
+    ist_tz = timezone(timedelta(hours=5, minutes=30))
+    now_ist = datetime.now(timezone.utc).astimezone(ist_tz)
+    is_night = (now_ist.hour >= 19 or now_ist.hour < 6)
     
     # 3. Inversion check using current weather
     inversion_state = inversion_module.compute_isi(
@@ -105,7 +115,7 @@ async def get_delhi_forecast(
     
     active_us_aqi = target_station.get("aqi_us") if target_station else cpcb_client.compute_us_aqi(forecast_initial_readings["pm25"])
 
-    return {
+    res_payload = {
         "city": location_label,
         "target_station": target_station,
         "composite_aqi": active_aqi,
@@ -128,6 +138,8 @@ async def get_delhi_forecast(
         "mandate_normals": mandate_normals,
         "forecast": forecast_results
     }
+    _FORECAST_CACHE[cache_key] = (res_payload, now)
+    return res_payload
 
 import math
 

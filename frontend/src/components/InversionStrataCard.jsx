@@ -5,16 +5,16 @@ export default function InversionStrataCard({ inversionData, couplingDelta }) {
   const [showFormula, setShowFormula] = useState(false);
   const [showVerificationGuide, setShowVerificationGuide] = useState(false);
 
-  const isi = inversionData?.inversion_severity_index ?? 0.11;
-  const pblHeight = inversionData?.pbl_height_m ?? 1450;
-  const status = inversionData?.status ?? "Uncapped / Convective Mixing";
+  const isi = inversionData?.inversion_severity_index ?? 0.58;
+  const pblHeight = inversionData?.pbl_height_m ?? 280;
+  const status = inversionData?.status ?? "Moderate Inversion Lid";
   const deltaPct = couplingDelta?.retention_gain_pct ?? 4.2;
   const deltaVal = couplingDelta?.delta_pm25_ugm3 ?? 1.8;
   const subFactors = inversionData?.sub_factors || {
-    pbl_suppression: 0.07,
-    wind_stagnation: 0.04,
-    thermal_gradient: 0.05,
-    hygroscopic_rh: 0.65
+    pbl_suppression: 0.52,
+    wind_stagnation: 0.44,
+    thermal_gradient: 0.72,
+    hygroscopic_rh: 0.70
   };
 
   // Diurnal timeline steps for user comparison

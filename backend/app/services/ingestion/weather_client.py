@@ -49,7 +49,9 @@ class WeatherClient:
                     times = hourly.get("time", [])
                     
                     # Find index corresponding to current IST hour
-                    now_ist = datetime.now(timezone.utc).astimezone()
+                    from datetime import timedelta
+                    ist_tz = timezone(timedelta(hours=5, minutes=30))
+                    now_ist = datetime.now(timezone.utc).astimezone(ist_tz)
                     # Format as YYYY-MM-DDTHH
                     curr_prefix = now_ist.strftime("%Y-%m-%dT%H")
                     current_idx = 0
@@ -70,22 +72,33 @@ class WeatherClient:
                         v = round(-w_speed * math.cos(rad), 2)
                         
                         pbl_h = hourly.get("boundary_layer_height", [1200])[i]
-                        if pbl_h is None or pbl_h < 80:
-                            # Dynamic nocturnal minimum
-                            pbl_h = 280.0
+                        # Physical nocturnal boundary layer capping for Delhi NCR
+                        t_hour = 12
+                        if "T" in times[i]:
+                            try:
+                                t_hour = int(times[i].split("T")[1].split(":")[0])
+                            except Exception:
+                                pass
+                        is_step_night = (t_hour >= 19 or t_hour < 6)
+                        if is_step_night:
+                            if pbl_h is None or pbl_h > 380.0 or pbl_h < 80.0:
+                                pbl_h = 240.0
+                        else:
+                            if pbl_h is None or pbl_h < 100.0:
+                                pbl_h = 1200.0
                             
                         points.append({
                             "timestamp": times[i],
                             "hour_step": step_i,
-                            "temperature": hourly.get("temperature_2m", [32])[i] if hourly.get("temperature_2m", [32])[i] is not None else 32.0,
-                            "relative_humidity": hourly.get("relative_humidity_2m", [65])[i] if hourly.get("relative_humidity_2m", [65])[i] is not None else 65.0,
+                            "temperature": hourly.get("temperature_2m", [32])[i] if hourly.get("temperature_2m", [32])[i] is not None else (26.0 if is_step_night else 32.0),
+                            "relative_humidity": hourly.get("relative_humidity_2m", [65])[i] if hourly.get("relative_humidity_2m", [65])[i] is not None else (76.0 if is_step_night else 65.0),
                             "surface_pressure": hourly.get("surface_pressure", [1005])[i] if hourly.get("surface_pressure", [1005])[i] is not None else 1005.0,
                             "wind_speed": round(w_speed, 1),
                             "wind_direction": w_dir,
                             "wind_u": u,
                             "wind_v": v,
                             "pbl_height": round(pbl_h, 1),
-                            "solar_radiation": hourly.get("direct_normal_irradiance", [0])[i] or 0.0
+                            "solar_radiation": (hourly.get("direct_normal_irradiance", [0])[i] or 0.0) if not is_step_night else 0.0
                         })
                     
                     current = points[0] if points else self._fallback_current_weather()
@@ -121,18 +134,22 @@ class WeatherClient:
         }
 
     def _fallback_current_weather(self) -> Dict[str, Any]:
+        from datetime import timedelta
+        ist_tz = timezone(timedelta(hours=5, minutes=30))
+        now_ist = datetime.now(timezone.utc).astimezone(ist_tz)
+        is_night = (now_ist.hour >= 19 or now_ist.hour < 6)
         return {
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": now_ist.isoformat(),
             "hour_step": 0,
-            "temperature": 33.5,
-            "relative_humidity": 62.0,
-            "surface_pressure": 1004.8,
-            "wind_speed": 3.1,
-            "wind_direction": 220, # South-Westerly monsoon airflow
-            "wind_u": -2.37,
-            "wind_v": 1.99,
-            "pbl_height": 1480.0, # High convective boundary layer (Monsoon/September daytime)
-            "solar_radiation": 480.0
+            "temperature": 26.5 if is_night else 33.5,
+            "relative_humidity": 78.0 if is_night else 62.0,
+            "surface_pressure": 1006.2 if is_night else 1004.8,
+            "wind_speed": 1.7 if is_night else 3.1,
+            "wind_direction": 315 if is_night else 220,
+            "wind_u": -1.20 if is_night else -2.37,
+            "wind_v": -1.20 if is_night else 1.99,
+            "pbl_height": 220.0 if is_night else 1480.0,
+            "solar_radiation": 0.0 if is_night else 480.0
         }
 
     def _generate_fallback_weather(self) -> Dict[str, Any]:

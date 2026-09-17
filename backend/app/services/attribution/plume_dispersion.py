@@ -29,11 +29,12 @@ class PlumeDispersionTracker:
         raw_downwind_bearing = (wind_direction_deg + 180) % 360
 
         # Himalayan Orographic Channeling:
-        # The 6,000m Himalayan barrier directly North-East of Punjab prevents cross-mountain transport into Tibet.
-        # Boundary layer air in Northern India is topographically steered down the Indo-Gangetic trough
-        # towards Delhi NCR and Uttar Pradesh (125° to 140° corridor).
-        if 15.0 <= raw_downwind_bearing <= 110.0:
-            downwind_bearing_deg = 132.0 + (raw_downwind_bearing - 60.0) * 0.12
+        # The 6,000m Himalayan barrier directly North and North-East of Punjab/Haryana prevents cross-mountain transport into Tibet.
+        # Planetary boundary layer air in Northern India is topographically steered down the Indo-Gangetic trough
+        # towards Delhi NCR and Uttar Pradesh (125° to 142° corridor).
+        if raw_downwind_bearing <= 115.0 or raw_downwind_bearing >= 345.0:
+            offset = raw_downwind_bearing if raw_downwind_bearing <= 115.0 else (raw_downwind_bearing - 360.0)
+            downwind_bearing_deg = 132.0 + (offset - 50.0) * 0.10
         else:
             downwind_bearing_deg = raw_downwind_bearing
 

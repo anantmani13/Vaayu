@@ -227,12 +227,12 @@ export default function App() {
   const displayAqi = selectedStation ? selectedStation.aqi : (forecastData?.composite_aqi || 95);
   const displayUsAqi = selectedStation ? (selectedStation.aqi_us || Math.round(selectedStation.aqi * 1.52)) : (forecastData?.composite_aqi_us || 153);
   const displayCategory = selectedStation ? selectedStation.category : (forecastData?.category || 'Satisfactory');
-  const displayPm25 = selectedStation ? selectedStation.pm25 : (forecastData?.pollutants?.pm25 || 57);
-  const displayPm10 = selectedStation ? selectedStation.pm10 : (forecastData?.pollutants?.pm10 || 64);
+  const displayPm25 = selectedStation ? selectedStation.pm25 : (forecastData?.pollutants?.pm25 ?? 52);
+  const displayPm10 = selectedStation ? selectedStation.pm10 : (forecastData?.pollutants?.pm10 ?? 64);
   const displayLocality = selectedStation ? `${selectedStation.name}, Delhi NCR` : "Delhi National Capital Region (NCR)";
 
-  const isi = forecastData?.inversion_layer?.inversion_severity_index || 0.635;
-  const fireCount = attributionData?.active_fires_detected?.count || 57;
+  const isi = forecastData?.inversion_layer?.inversion_severity_index ?? 0.635;
+  const fireCount = attributionData?.active_fires_detected?.count ?? (winterSimulation ? 48 : 0);
   const breakdown = attributionData?.source_apportionment?.breakdown_percentages || {
     stubble_burning: 24.5,
     vehicular: 38.2,
@@ -366,7 +366,7 @@ export default function App() {
               className={`btn-zen ${winterSimulation ? 'primary' : ''}`}
               style={{ padding: '3px 10px', fontSize: '0.75rem', fontWeight: 600 }}
               onClick={() => setWinterSimulation(!winterSimulation)}
-              title="Toggle between Live Current Monsoon conditions and Winter 57-Fire Smog Inversion simulation"
+              title="Toggle between Live Current Meteorology and Winter Stubble Smog Inversion simulation"
             >
               {winterSimulation ? '🔥 Winter Smog Sim (Stubble Influx)' : '🌿 Live Sept Monsoon (Current)'}
             </button>

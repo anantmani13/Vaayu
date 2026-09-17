@@ -15,12 +15,18 @@ class FirmsClient:
         self.map_key = settings.NASA_FIRMS_MAP_KEY
         self.bbox = settings.AIRSHED_BBOX
         self.base_url = "https://firms.modaps.eosdis.nasa.gov/api/area/csv"
+        self._cached_fires = []
+        self._last_fetch_time = 0
 
-    async def fetch_active_fires(self, days: int = 1) -> List[Dict[str, Any]]:
+    async def fetch_active_fires(self, days: int = 1, force_refresh: bool = False) -> List[Dict[str, Any]]:
         """
         Fetches active fires from NASA FIRMS API within the airshed bbox.
-        Falls back to seasonal fire simulation if off-season or network error.
+        Caches results for 30 minutes to maintain stable, deterministic telemetry across refreshes.
         """
+        import time
+        now = time.time()
+        if not force_refresh and self._cached_fires and (now - self._last_fetch_time < 1800):
+            return self._cached_fires
         area_str = f"{self.bbox['lon_min']},{self.bbox['lat_min']},{self.bbox['lon_max']},{self.bbox['lat_max']}"
         source = "VIIRS_SNPP_NRT"
         url = f"{self.base_url}/{self.map_key}/{source}/{area_str}/{days}"
@@ -58,6 +64,8 @@ class FirmsClient:
         if len(fires) < 5:
             fires = self._generate_representative_fires()
 
+        self._cached_fires = fires
+        self._last_fetch_time = time.time()
         return fires
 
     def _generate_representative_fires(self) -> List[Dict[str, Any]]:
@@ -67,6 +75,10 @@ class FirmsClient:
         based on historical FIRMS patterns.
         """
         import random
+        # Seed by date and hour to maintain deterministic stability across repeated refreshes
+        seed_key = int(datetime.now(timezone.utc).strftime("%Y%m%d%H"))
+        rng = random.Random(seed_key)
+
         base_clusters = [
             # Punjab high-intensity agricultural clusters
             {"region": "Sangrur, Punjab", "lat": 30.24, "lon": 75.84, "min_c": 7, "max_c": 16, "frp_range": (35, 95)},
@@ -82,16 +94,16 @@ class FirmsClient:
         today_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
         
         for cluster in base_clusters:
-            n_fires = random.randint(cluster["min_c"], cluster["max_c"])
+            n_fires = rng.randint(cluster["min_c"], cluster["max_c"])
             for _ in range(n_fires):
                 simulated.append({
-                    "latitude": round(cluster["lat"] + random.uniform(-0.15, 0.15), 4),
-                    "longitude": round(cluster["lon"] + random.uniform(-0.15, 0.15), 4),
-                    "brightness": round(random.uniform(320.0, 365.0), 1),
-                    "frp": round(random.uniform(*cluster["frp_range"]), 1),
+                    "latitude": round(cluster["lat"] + rng.uniform(-0.15, 0.15), 4),
+                    "longitude": round(cluster["lon"] + rng.uniform(-0.15, 0.15), 4),
+                    "brightness": round(rng.uniform(320.0, 365.0), 1),
+                    "frp": round(rng.uniform(*cluster["frp_range"]), 1),
                     "confidence": "high",
                     "acq_date": today_str,
-                    "acq_time": f"{random.randint(10, 16):02d}{random.randint(0, 59):02d}",
+                    "acq_time": f"{rng.randint(10, 16):02d}{rng.randint(0, 59):02d}",
                     "region": cluster["region"],
                     "satellite": "VIIRS SNPP (NASA Earthdata)"
                 })
