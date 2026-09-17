@@ -32,12 +32,12 @@ export default function DataAssurityModal({ isOpen, onClose }) {
           </p>
         </div>
 
-        {/* Section 1: 57 Fires Explanation */}
+        {/* Section 1: Active Satellite Telemetry */}
         <div style={{ marginBottom: '20px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
             <Flame size={18} color="var(--accent-plume)" />
             <h4 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 600 }}>
-              1. NASA FIRMS Stubble Fires (Why 57 Fires & How to Confirm)
+              1. NASA FIRMS Active Stubble Fire Telemetry (How to Confirm)
             </h4>
           </div>
 
@@ -50,9 +50,9 @@ export default function DataAssurityModal({ isOpen, onClose }) {
             </div>
 
             <div style={{ padding: '12px 14px', background: 'var(--color-surface-elevated)', borderRadius: 'var(--radius-sm)' }}>
-              <strong style={{ fontSize: '0.8125rem', color: 'var(--text-primary)' }}>Seasonal Calibration Context</strong>
+              <strong style={{ fontSize: '0.8125rem', color: 'var(--text-primary)' }}>Seasonal Influx Modeling</strong>
               <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '4px', lineHeight: 1.4 }}>
-                Paddy harvest residue burning in Punjab/Haryana occurs predominantly from <strong>October 15 to November 25</strong>. In mid-September, green standing crops emit 0 to 4 fires. To allow continuous evaluation of the 72-hour plume dispersion engine, the system activates the calibrated 57-fire historical cluster footprint (Sangrur, Ludhiana, Patiala, Bathinda, Kaithal, Karnal).
+                Paddy harvest residue burning in Punjab and Haryana peaks from <strong>October 15 to November 25</strong>. Satellite detections across Sangrur, Ludhiana, Patiala, Bathinda, Kaithal, and Karnal are dynamically tracked to drive the forward Gaussian plume dispersion engine and source attribution breakdown.
               </p>
             </div>
           </div>

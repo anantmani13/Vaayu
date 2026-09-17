@@ -15,7 +15,7 @@ class InversionModule:
         wind_speed_ms: float,
         temperature_c: float,
         relative_humidity: float,
-        is_nighttime: bool = False
+        is_nighttime: bool = None
     ) -> Dict[str, Any]:
         """
         Computes the Inversion Severity Index (ISI) using micrometeorological
@@ -25,27 +25,32 @@ class InversionModule:
         3. Nocturnal radiative cooling & thermal gradient
         4. Aerosol hygroscopic growth factor (relative humidity)
         """
+        # Auto-detect Indian Standard Time (IST = UTC + 5:30) if not specified
+        if is_nighttime is None:
+            try:
+                from datetime import datetime, timezone, timedelta
+                ist_now = datetime.now(timezone.utc) + timedelta(hours=5, minutes=30)
+                is_nighttime = ist_now.hour >= 19 or ist_now.hour < 6
+            except Exception:
+                is_nighttime = False
+
+        # Physical nocturnal boundary layer capping:
+        # After sunset (19:00-06:00 IST), solar thermal convection ceases and ground radiational cooling
+        # caps the stable nocturnal boundary layer between 150m and 380m across Delhi NCR.
+        if is_nighttime:
+            eff_pbl = min(max(80.0, pbl_height_m), 380.0)
+            temp_factor = 0.70 + 0.30 * max(0.0, min(1.0, (28.0 - temperature_c) / 12.0))
+        else:
+            eff_pbl = max(100.0, pbl_height_m)
+            temp_factor = max(0.05, 0.25 * max(0.0, min(1.0, (28.0 - temperature_c) / 20.0)))
+
         # 1. Continuous PBL suppression factor: scale depth = 550m
-        # For 1500m PBL (daytime convection): S_pbl ~ 0.065
-        # For 300m PBL (nocturnal inversion): S_pbl ~ 0.58
-        # For 180m PBL (severe winter compression): S_pbl ~ 0.72
-        s_pbl = math.exp(-max(50.0, pbl_height_m) / 550.0)
+        s_pbl = math.exp(-eff_pbl / 550.0)
         
         # 2. Aerodynamic wind mixing factor: scale velocity = 2.2 m/s
-        # For 8.0 m/s wind: S_wind ~ 0.026
-        # For 3.0 m/s wind: S_wind ~ 0.25
-        # For 1.0 m/s calm: S_wind ~ 0.63
         eff_wind = max(0.2, wind_speed_ms)
         s_wind = math.exp(-eff_wind / 2.2)
         
-        # 3. Thermal lapse rate / radiative cooling factor
-        if is_nighttime:
-            # Nocturnal ground radiation cooling creates negative lapse rate (inversion)
-            temp_factor = 0.65 + 0.35 * max(0.0, min(1.0, (26.0 - temperature_c) / 15.0))
-        else:
-            # Daytime solar insolation generates positive convective thermals
-            temp_factor = max(0.05, 0.25 * max(0.0, min(1.0, (28.0 - temperature_c) / 20.0)))
-            
         # 4. Humidity condensation / aerosol hygroscopic swelling
         rh_factor = max(0.05, min(1.0, relative_humidity / 100.0))
         

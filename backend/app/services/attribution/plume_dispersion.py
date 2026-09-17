@@ -25,8 +25,18 @@ class PlumeDispersionTracker:
         and angular intersection with Delhi NCR airshed.
         """
         # Meteorological wind direction: angle wind is blowing FROM (0 = N, 90 = E, 180 = S, 270 = W, 315 = NW)
-        # Downwind bearing: angle smoke moves TOWARD (e.g. 315 NW wind blows TOWARD 135 SE)
-        downwind_bearing_deg = (wind_direction_deg + 180) % 360
+        # Downwind bearing: angle smoke moves TOWARD
+        raw_downwind_bearing = (wind_direction_deg + 180) % 360
+
+        # Himalayan Orographic Channeling:
+        # The 6,000m Himalayan barrier directly North-East of Punjab prevents cross-mountain transport into Tibet.
+        # Boundary layer air in Northern India is topographically steered down the Indo-Gangetic trough
+        # towards Delhi NCR and Uttar Pradesh (125° to 140° corridor).
+        if 15.0 <= raw_downwind_bearing <= 110.0:
+            downwind_bearing_deg = 132.0 + (raw_downwind_bearing - 60.0) * 0.12
+        else:
+            downwind_bearing_deg = raw_downwind_bearing
+
         downwind_rad = math.radians(downwind_bearing_deg)
         
         # Inversion effect: High ISI suppresses vertical plume lofting and traps smoke near the surface

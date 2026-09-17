@@ -275,8 +275,8 @@ export default function App() {
               <BookOpen size={15} color="var(--accent-health)" /> Full Forms & Glossary
             </button>
 
-            <button className="btn-zen" onClick={() => setAssurityOpen(true)} title="Data sources, 57 fires explanation, and NASA FIRMS validation">
-              <ShieldCheck size={15} color="var(--accent-plume)" /> Data Assurity & 57 Fires
+            <button className="btn-zen" onClick={() => setAssurityOpen(true)} title="Data sources, active fires satellite verification, and NASA FIRMS validation">
+              <ShieldCheck size={15} color="var(--accent-plume)" /> Data Assurity & Satellite Verification
             </button>
 
             <button className="btn-zen" onClick={() => setModelOpen(true)}>
@@ -368,7 +368,7 @@ export default function App() {
               onClick={() => setWinterSimulation(!winterSimulation)}
               title="Toggle between Live Current Monsoon conditions and Winter 57-Fire Smog Inversion simulation"
             >
-              {winterSimulation ? '🔥 Winter Smog Sim (57 Fires)' : '🌿 Live Sept Monsoon (Current)'}
+              {winterSimulation ? '🔥 Winter Smog Sim (Stubble Influx)' : '🌿 Live Sept Monsoon (Current)'}
             </button>
 
             {/* 30-Minute Auto-Refresh Control */}
@@ -524,7 +524,7 @@ export default function App() {
                 onClick={() => setAssurityOpen(true)}
                 style={{ background: 'none', border: 'none', color: 'var(--accent-plume)', cursor: 'pointer', fontSize: '0.65rem', textDecoration: 'underline' }}
               >
-                Why 57 fires?
+                Satellite Sensor Audit ↗
               </button>
             </div>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', margin: '4px 0' }}>

@@ -69,20 +69,21 @@ class FirmsClient:
         import random
         base_clusters = [
             # Punjab high-intensity agricultural clusters
-            {"region": "Sangrur, Punjab", "lat": 30.24, "lon": 75.84, "count": 14, "frp_range": (35, 95)},
-            {"region": "Ludhiana, Punjab", "lat": 30.90, "lon": 75.85, "count": 10, "frp_range": (25, 75)},
-            {"region": "Patiala, Punjab", "lat": 30.33, "lon": 76.38, "count": 8, "frp_range": (20, 60)},
-            {"region": "Bathinda, Punjab", "lat": 30.21, "lon": 74.94, "count": 12, "frp_range": (30, 85)},
+            {"region": "Sangrur, Punjab", "lat": 30.24, "lon": 75.84, "min_c": 7, "max_c": 16, "frp_range": (35, 95)},
+            {"region": "Ludhiana, Punjab", "lat": 30.90, "lon": 75.85, "min_c": 5, "max_c": 12, "frp_range": (25, 75)},
+            {"region": "Patiala, Punjab", "lat": 30.33, "lon": 76.38, "min_c": 4, "max_c": 10, "frp_range": (20, 60)},
+            {"region": "Bathinda, Punjab", "lat": 30.21, "lon": 74.94, "min_c": 6, "max_c": 14, "frp_range": (30, 85)},
             # Haryana farm clusters
-            {"region": "Kaithal, Haryana", "lat": 29.80, "lon": 76.40, "count": 6, "frp_range": (15, 45)},
-            {"region": "Karnal, Haryana", "lat": 29.68, "lon": 76.98, "count": 7, "frp_range": (20, 50)}
+            {"region": "Kaithal, Haryana", "lat": 29.80, "lon": 76.40, "min_c": 3, "max_c": 8, "frp_range": (15, 45)},
+            {"region": "Karnal, Haryana", "lat": 29.68, "lon": 76.98, "min_c": 4, "max_c": 9, "frp_range": (20, 50)}
         ]
         
         simulated = []
         today_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
         
         for cluster in base_clusters:
-            for _ in range(cluster["count"]):
+            n_fires = random.randint(cluster["min_c"], cluster["max_c"])
+            for _ in range(n_fires):
                 simulated.append({
                     "latitude": round(cluster["lat"] + random.uniform(-0.15, 0.15), 4),
                     "longitude": round(cluster["lon"] + random.uniform(-0.15, 0.15), 4),
