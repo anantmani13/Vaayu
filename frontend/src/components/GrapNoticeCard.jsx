@@ -11,8 +11,13 @@ export default function GrapNoticeCard({ grapData }) {
 
   const notice = grapData?.auto_drafted_notice;
   const activeDetails = grapData?.active_mandate_details;
-  const stageName = activeDetails?.name || "Stage III — 'Severe' Air Quality";
+  const currentStageLabel = grapData?.current_stage
+    ? (grapData.current_stage === 'NORMAL' ? 'STANDBY' : grapData.current_stage.replace('_', ' '))
+    : 'STANDBY';
+  const stageName = activeDetails?.name || (currentStageLabel === 'STANDBY' ? "Standby — Pre-GRAP Normal" : `${currentStageLabel} Compliance`);
   const checklist = notice?.action_checklist || activeDetails?.statutory_mandates || [];
+  const isSevereOrAbove = grapData?.current_stage === 'STAGE_III' || grapData?.current_stage === 'STAGE_IV';
+  const badgeColor = grapData?.current_stage === 'NORMAL' ? 'var(--aqi-good)' : (isSevereOrAbove ? 'var(--aqi-severe)' : 'var(--accent-inversion)');
 
   const handleConfirmSign = async () => {
     setLoading(true);
@@ -21,7 +26,7 @@ export default function GrapNoticeCard({ grapData }) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          bulletin_id: notice?.bulletin_id || 'CAQM/GRAP/NCR/2026/03',
+          bulletin_id: notice?.bulletin_id || 'CAQM/GRAP/NCR/2026/01',
           officer_name: officerName,
           action_notes: "Statutory mandates ratified under CAQM Act Section 12."
         })
@@ -40,11 +45,11 @@ export default function GrapNoticeCard({ grapData }) {
     <div className="card-zen">
       <div className="card-header">
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <ShieldAlert size={20} color="var(--aqi-severe)" />
+          <ShieldAlert size={20} color={badgeColor} />
           <h3 className="card-title">CAQM GRAP Regulatory Compliance Engine</h3>
         </div>
-        <span className="card-badge" style={{ backgroundColor: 'var(--aqi-severe)', color: '#FFFFFF' }}>
-          Mandate: {grapData?.current_stage?.replace('_', ' ') || 'STAGE III'}
+        <span className="card-badge" style={{ backgroundColor: badgeColor, color: '#FFFFFF' }}>
+          Mandate: {currentStageLabel}
         </span>
       </div>
 
@@ -139,7 +144,7 @@ export default function GrapNoticeCard({ grapData }) {
             </div>
 
             <p style={{ fontSize: '0.8125rem', color: 'var(--text-secondary)', marginBottom: '16px' }}>
-              Authorize statutory GRAP Stage III mandate enforcement across Delhi NCR jurisdictions:
+              Authorize statutory GRAP {currentStageLabel} mandate enforcement across Delhi NCR jurisdictions:
             </p>
 
             <div style={{ marginBottom: '14px' }}>

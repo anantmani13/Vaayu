@@ -59,6 +59,17 @@ class GrapStageEngine:
                 "Discontinue physical classes for all school grades up to Grade 9 and Grade 11 (shifting strictly online)",
                 "State and Central Governments to consider odd-even vehicle rationing and emergency commercial restrictions"
             ]
+        },
+        "NORMAL": {
+            "name": "Standby / Normal — Air Quality Moderate to Good",
+            "threshold_aqi": (0, 200),
+            "severity_label": "Normal / Standby",
+            "statutory_mandates": [
+                "Continuous ambient monitoring across 40 CPCB/DPCC continuous telemetry stations",
+                "Regular mechanized sweeping and water sprinkling on high-density corridors",
+                "Pre-emptive meteorological boundary layer tracking for early inversion alerts",
+                "Enforce standard industrial stack emissions compliance by DPCC/HSPCB/UPPCB"
+            ]
         }
     }
 
@@ -76,8 +87,8 @@ class GrapStageEngine:
         # Duration predicted above threshold
         hours_above_400 = sum(1 for a in forecast_aqi_72h if a >= 401)
         
-        stage_key = predicted_stage or current_stage or "STAGE_I"
-        stage_info = self.STAGE_DEFINITIONS[stage_key]
+        stage_key = predicted_stage or current_stage or "NORMAL"
+        stage_info = self.STAGE_DEFINITIONS.get(stage_key, self.STAGE_DEFINITIONS["NORMAL"])
         
         compliance_notice = self._draft_compliance_notice(
             stage_key=stage_key,
@@ -115,7 +126,8 @@ class GrapStageEngine:
         info = self.STAGE_DEFINITIONS.get(stage_key, self.STAGE_DEFINITIONS["STAGE_II"])
         now = datetime.now(timezone.utc)
         
-        bulletin_number = f"CAQM/GRAP/NCR/{now.strftime('%Y%m%d')}/0{stage_key[-1]}"
+        stage_code = stage_key.split('_')[-1] if 'STAGE_' in stage_key else "00"
+        bulletin_number = f"CAQM/GRAP/NCR/{now.strftime('%Y%m%d')}/{stage_code}"
         
         return {
             "bulletin_id": bulletin_number,

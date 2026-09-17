@@ -547,12 +547,16 @@ export default function App() {
               <span className="card-badge" style={{ fontSize: '0.6rem' }}>CAQM Statutory</span>
             </div>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', margin: '4px 0' }}>
-              <span className="mono" style={{ fontSize: '1.4rem', fontWeight: 600, color: 'var(--aqi-severe)' }}>
-                {grapData?.current_stage?.replace('_', ' ') || 'STAGE I'}
+              <span className="mono" style={{
+                fontSize: '1.4rem',
+                fontWeight: 600,
+                color: (!grapData?.current_stage || grapData.current_stage === 'NORMAL') ? 'var(--aqi-good)' : 'var(--aqi-severe)'
+              }}>
+                {grapData?.current_stage ? (grapData.current_stage === 'NORMAL' ? 'STANDBY' : grapData.current_stage.replace('_', ' ')) : 'STANDBY'}
               </span>
             </div>
             <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
-              Mandatory Regulatory Framework
+              {grapData?.current_stage === 'NORMAL' ? 'Pre-GRAP (AQI ≤ 200)' : 'Mandatory Regulatory Framework'}
             </div>
           </div>
         </section>
