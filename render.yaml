@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: vaayu-aqi
+    env: docker
+    dockerfilePath: ./Dockerfile
+    plan: free
+    region: oregon
+    healthCheckPath: /api/v1/status
+    envVars:
+      - key: PORT
+        value: 8000
+      - key: USE_GPU
+        value: "false"
+      - key: NASA_FIRMS_MAP_KEY
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: DATA_GOV_IN_API_KEY
+        sync: false
+      - key: WAQI_API_TOKEN
+        sync: false

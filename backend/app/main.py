@@ -1,5 +1,8 @@
+from pathlib import Path
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from backend.app.core.config import settings
 from backend.app.api.v1.endpoints import forecast, attribution, grap, advisory, historical
 
@@ -31,8 +34,9 @@ app.include_router(grap.router, prefix=f"{settings.API_V1_STR}/grap", tags=["CAQ
 app.include_router(advisory.router, prefix=f"{settings.API_V1_STR}/advisory", tags=["Vernacular Health Advisory"])
 app.include_router(historical.router, prefix=f"{settings.API_V1_STR}/historical", tags=["2015-2026 Historical Archive"])
 
-@app.get("/")
-def root():
+# API Status Endpoint
+@app.get(f"{settings.API_V1_STR}/status")
+def api_status():
     return {
         "system": settings.PROJECT_NAME,
         "version": settings.VERSION,
@@ -49,6 +53,30 @@ def root():
         }
     }
 
+# Static Files & SPA Frontend Serving for Production Deployments (Render, Railway, Docker)
+frontend_dist = Path(__file__).resolve().parent.parent.parent / "frontend" / "dist"
+assets_dir = frontend_dist / "assets"
+
+if frontend_dist.exists() and (frontend_dist / "index.html").exists():
+    if assets_dir.exists():
+        app.mount("/assets", StaticFiles(directory=str(assets_dir)), name="assets")
+
+    @app.get("/")
+    async def serve_index():
+        return FileResponse(frontend_dist / "index.html")
+
+    @app.get("/{full_path:path}")
+    async def serve_spa(full_path: str):
+        candidate = frontend_dist / full_path
+        if candidate.exists() and candidate.is_file():
+            return FileResponse(candidate)
+        return FileResponse(frontend_dist / "index.html")
+else:
+    @app.get("/")
+    def root():
+        return api_status()
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run("backend.app.main:app", host=settings.HOST, port=settings.PORT, reload=True)
+

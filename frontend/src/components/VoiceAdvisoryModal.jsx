@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Mic, MicOff, Volume2, Square, X, Sparkles, BookOpen, Send, AlertCircle, RefreshCw } from 'lucide-react';
+import { API_BASE } from '../apiConfig';
 
 export default function VoiceAdvisoryModal({ isOpen, onClose, currentAqi = 384, locality = "Anand Vihar, Delhi" }) {
   const [profile, setProfile] = useState('asthma');
@@ -148,7 +149,7 @@ export default function VoiceAdvisoryModal({ isOpen, onClose, currentAqi = 384, 
     setSpeechError(null);
 
     try {
-      const res = await fetch('http://localhost:8000/api/v1/advisory/query', {
+      const res = await fetch(`${API_BASE}/api/v1/advisory/query`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

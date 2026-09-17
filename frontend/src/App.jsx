@@ -35,6 +35,7 @@ import DataAssurityModal from './components/DataAssurityModal';
 import DataSourcesModal from './components/DataSourcesModal';
 import CompetitiveAdvantageModal from './components/CompetitiveAdvantageModal';
 import { Award, Database } from 'lucide-react';
+import { API_BASE } from './apiConfig';
 
 export default function App() {
   const [theme, setTheme] = useState('light');
@@ -96,16 +97,14 @@ export default function App() {
   const fetchData = async (stationIdOverride = null) => {
     setLoading(true);
     try {
-      const apiHost = window.location.hostname || 'localhost';
-      const apiBase = `http://${apiHost}:8000`;
       const activeStationId = stationIdOverride !== null 
         ? stationIdOverride 
         : (selectedStation?.station_id || '');
       const stationParam = activeStationId ? `&station_id=${activeStationId}` : '';
-      const forecastUrl = `${apiBase}/api/v1/forecast/delhi?winter_simulation=${winterSimulation}${stationParam}`;
-      const attributionUrl = `${apiBase}/api/v1/attribution${winterSimulation ? '?winter_simulation=true' : ''}`;
-      const grapUrl = `${apiBase}/api/v1/grap/status`;
-      const stationsUrl = `${apiBase}/api/v1/forecast/stations`;
+      const forecastUrl = `${API_BASE}/api/v1/forecast/delhi?winter_simulation=${winterSimulation}${stationParam}`;
+      const attributionUrl = `${API_BASE}/api/v1/attribution${winterSimulation ? '?winter_simulation=true' : ''}`;
+      const grapUrl = `${API_BASE}/api/v1/grap/status`;
+      const stationsUrl = `${API_BASE}/api/v1/forecast/stations`;
 
       const results = await Promise.allSettled([
         fetch(forecastUrl).then(r => r.ok ? r.json() : null),

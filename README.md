@@ -150,18 +150,40 @@ npm run dev
 
 ---
 
+## 🌐 Deploy to Render (1-Click Unified Production)
+
+The project includes an automated multi-stage [Dockerfile](Dockerfile) and [`render.yaml`](render.yaml) blueprint that packages the React frontend and FastAPI backend into a single service with zero CORS issues.
+
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy)
+
+### Manual Setup on Render.com:
+1. Log in to [Render.com](https://render.com/) and click **New +** $\to$ **Web Service**.
+2. Connect your GitHub repository: `https://github.com/anantmani13/Vaayu`.
+3. Choose **Docker** as the runtime (Render will automatically detect the root `Dockerfile`).
+4. Select the **Free** instance type.
+5. In **Environment Variables**, add any custom API keys if desired:
+   - `OPENAI_API_KEY`
+   - `NASA_FIRMS_MAP_KEY`
+   - `WAQI_API_TOKEN`
+   - `DATA_GOV_IN_API_KEY`
+   *(Optional: The app includes built-in offline fallbacks and regional calibration data if keys are omitted)*.
+6. Click **Deploy Web Service**! Render will build the React SPA, launch FastAPI, and generate your live HTTPS URL.
+
+---
+
 ## 📡 API Endpoints Reference
 
 | Route | Method | Description |
 |---|---|---|
-| `/api/v1/forecast/coupled` | `POST` | Generates 6h to 72h coupled weather-chemistry AQI forecast |
+| `/` | `GET` | Serves the interactive React Dashboard SPA |
+| `/api/v1/forecast/delhi` | `GET` | 72-hour coupled weather-chemistry AQI forecast |
 | `/api/v1/forecast/stations` | `GET` | Telemetry from 40 CAAQMS monitoring stations across Delhi NCR |
-| `/api/v1/attribution/sources` | `GET` | Quantitative breakdown of pollution sources |
-| `/api/v1/attribution/fires` | `GET` | Active satellite fire detections and FRP metrics |
+| `/api/v1/attribution` | `GET` | Quantitative breakdown of pollution sources and active fires |
 | `/api/v1/grap/status` | `GET` | Current GRAP stage, trigger pollutants, and enforcement rules |
-| `/api/v1/advisory/generate` | `POST` | Vernacular demographic health advice with translation |
+| `/api/v1/advisory/query` | `POST` | Vernacular demographic health advice with translation |
+| `/api/v1/status` | `GET` | Service operational health check |
 
-Interactive Swagger documentation is available at `http://localhost:8000/docs`.
+Interactive Swagger documentation is available at `/docs`.
 
 ---
 

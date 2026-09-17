@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { ShieldAlert, CheckCircle2, Send, Check, Info, FileText, UserCheck } from 'lucide-react';
+import { API_BASE } from '../apiConfig';
 
 export default function GrapNoticeCard({ grapData }) {
   const [dispatched, setDispatched] = useState(false);
@@ -16,7 +17,7 @@ export default function GrapNoticeCard({ grapData }) {
   const handleConfirmSign = async () => {
     setLoading(true);
     try {
-      await fetch('http://localhost:8000/api/v1/grap/dispatch', {
+      await fetch(`${API_BASE}/api/v1/grap/dispatch`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

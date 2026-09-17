@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { Calendar, X, BarChart3 } from 'lucide-react';
+import { API_BASE } from '../apiConfig';
 
 export default function HistoricalModal({ isOpen, onClose }) {
   const [data, setData] = useState(null);
 
   useEffect(() => {
     if (!isOpen) return;
-    fetch('http://localhost:8000/api/v1/historical/summary')
+    fetch(`${API_BASE}/api/v1/historical/summary`)
       .then(res => res.json())
       .then(d => setData(d))
       .catch(() => {});

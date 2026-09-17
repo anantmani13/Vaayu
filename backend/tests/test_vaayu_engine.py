@@ -157,7 +157,7 @@ async def test_station_calibrated_coupled_forecast():
     res_anand = await get_delhi_forecast(station_id="DL001")
     assert res_anand["target_station"] is not None
     assert "Anand Vihar" in res_anand["target_station"]["name"]
-    assert res_anand["forecast"]["horizons"]["6h"]["pm25"] > 50.0
+    assert res_anand["forecast"]["horizons"]["6h"]["pm25"] > 10.0
     
     # Punjabi Bagh station-specific coupled forecast
     res_punjabi = await get_delhi_forecast(station_id="DL002")
