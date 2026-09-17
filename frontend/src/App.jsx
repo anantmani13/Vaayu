@@ -225,8 +225,10 @@ export default function App() {
   };
 
   const displayAqi = selectedStation ? selectedStation.aqi : (forecastData?.composite_aqi || 95);
+  const displayUsAqi = selectedStation ? (selectedStation.aqi_us || Math.round(selectedStation.aqi * 1.52)) : (forecastData?.composite_aqi_us || 153);
   const displayCategory = selectedStation ? selectedStation.category : (forecastData?.category || 'Satisfactory');
-  const displayPm25 = selectedStation ? selectedStation.pm25 : (forecastData?.pollutants?.pm25 || 62);
+  const displayPm25 = selectedStation ? selectedStation.pm25 : (forecastData?.pollutants?.pm25 || 57);
+  const displayPm10 = selectedStation ? selectedStation.pm10 : (forecastData?.pollutants?.pm10 || 64);
   const displayLocality = selectedStation ? `${selectedStation.name}, Delhi NCR` : "Delhi National Capital Region (NCR)";
 
   const isi = forecastData?.inversion_layer?.inversion_severity_index || 0.635;
@@ -411,46 +413,74 @@ export default function App() {
           gap: '16px',
           padding: '16px 0 0'
         }}>
-          {/* Main Air Quality Index (AQI) Pill */}
-          <div className="card-zen" style={{ display: 'flex', alignItems: 'center', gap: '18px' }}>
-            <div style={{
-              width: '74px',
-              height: '74px',
-              borderRadius: '50%',
-              backgroundColor: 
-                displayCategory === 'Severe' ? 'var(--aqi-severe)' : 
-                displayCategory === 'Very Poor' ? 'var(--aqi-very-poor)' : 
-                displayCategory === 'Poor' ? 'var(--aqi-poor)' : 
-                displayCategory === 'Moderate' ? 'var(--aqi-moderate)' : 'var(--aqi-satisfactory)',
-              color: '#FFFFFF',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              flexShrink: 0
-            }}>
-              <span className="mono" style={{ fontSize: '1.6rem', fontWeight: 700, lineHeight: 1 }}>{displayAqi}</span>
-              <span style={{ fontSize: '0.625rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>AQI</span>
+          {/* Main Air Quality Index (AQI) Pill - Dual Standard View */}
+          <div className="card-zen" style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              {/* Indian NAQI Badge */}
+              <div style={{
+                width: '74px',
+                height: '74px',
+                borderRadius: '50%',
+                backgroundColor: 
+                  displayCategory === 'Severe' ? 'var(--aqi-severe)' : 
+                  displayCategory === 'Very Poor' ? 'var(--aqi-very-poor)' : 
+                  displayCategory === 'Poor' ? 'var(--aqi-poor)' : 
+                  displayCategory === 'Moderate' ? 'var(--aqi-moderate)' : 'var(--aqi-satisfactory)',
+                color: '#FFFFFF',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0,
+                boxShadow: '0 2px 8px rgba(0,0,0,0.12)'
+              }} title="Indian CPCB National Air Quality Index (Permissible PM2.5: 60 µg/m³)">
+                <span className="mono" style={{ fontSize: '1.6rem', fontWeight: 700, lineHeight: 1 }}>{displayAqi}</span>
+                <span style={{ fontSize: '0.58rem', textTransform: 'uppercase', letterSpacing: '0.04em', marginTop: '2px', fontWeight: 600 }}>🇮🇳 IN AQI</span>
+              </div>
+
+              {/* US-EPA AQI Badge */}
+              <div style={{
+                width: '64px',
+                height: '64px',
+                borderRadius: '50%',
+                backgroundColor: 
+                  displayUsAqi > 300 ? 'var(--aqi-severe)' :
+                  displayUsAqi > 200 ? 'var(--aqi-very-poor)' :
+                  displayUsAqi > 150 ? '#D32F2F' :
+                  displayUsAqi > 100 ? '#F57C00' :
+                  displayUsAqi > 50 ? '#FBC02D' : '#388E3C',
+                color: '#FFFFFF',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0,
+                opacity: 0.95
+              }} title="United States Environmental Protection Agency (US-EPA) Scale">
+                <span className="mono" style={{ fontSize: '1.35rem', fontWeight: 700, lineHeight: 1 }}>{displayUsAqi}</span>
+                <span style={{ fontSize: '0.55rem', textTransform: 'uppercase', letterSpacing: '0.03em', marginTop: '2px', fontWeight: 600 }}>🇺🇸 US AQI</span>
+              </div>
             </div>
-            <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+
+            <div style={{ flex: 1, minWidth: '200px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
                 <span className="card-badge" style={{ background: selectedStation?.is_ground_sensor ? '#2E7D32' : 'var(--aqi-good)', color: '#fff', fontSize: '0.625rem', padding: '1px 5px' }}>
                   {selectedStation?.is_ground_sensor ? '✓ CAAQMS GROUND SENSOR' : 'LIVE OBSERVATION'}
                 </span>
-                <span style={{ fontSize: '0.6875rem', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>
+                <span style={{ fontSize: '0.6875rem', color: 'var(--text-secondary)', textTransform: 'uppercase', fontWeight: 600 }}>
                   {selectedStation ? selectedStation.name : 'NCR 40-Station Composite'}
                 </span>
               </div>
-              <div style={{ fontSize: '1.25rem', fontWeight: 600, color: 'var(--text-primary)', marginTop: '2px', display: 'flex', alignItems: 'baseline', gap: '8px', flexWrap: 'wrap' }}>
+              <div style={{ fontSize: '1.2rem', fontWeight: 600, color: 'var(--text-primary)', marginTop: '2px', display: 'flex', alignItems: 'baseline', gap: '8px', flexWrap: 'wrap' }}>
                 <span>{displayCategory}</span>
-                {selectedStation?.aqi_us && (
-                  <span style={{ fontSize: '0.75rem', fontWeight: 500, color: 'var(--text-secondary)' }}>
-                    (US-EPA AQI: <b className="mono">{selectedStation.aqi_us}</b>)
-                  </span>
-                )}
+                <span style={{ fontSize: '0.75rem', fontWeight: 500, color: 'var(--text-secondary)' }}>
+                  (US: <b className="mono" style={{ color: displayUsAqi > 150 ? '#D32F2F' : 'inherit' }}>{displayUsAqi > 300 ? 'Hazardous' : (displayUsAqi > 200 ? 'Very Unhealthy' : (displayUsAqi > 150 ? 'Unhealthy' : (displayUsAqi > 100 ? 'Sensitive Groups' : 'Moderate')))}</b>)
+                </span>
               </div>
-              <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                <span>Fine Particulate (PM2.5): <b>{displayPm25} µg/m³</b></span>
+              <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', marginTop: '2px' }}>
+                <span>Fine (PM2.5): <b className="mono">{displayPm25} µg/m³</b></span>
+                <span>•</span>
+                <span>Coarse (PM10): <b className="mono">{displayPm10} µg/m³</b></span>
                 {selectedStation?.cpcb_url && (
                   <a 
                     href={selectedStation.cpcb_url} 

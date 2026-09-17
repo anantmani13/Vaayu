@@ -103,10 +103,13 @@ async def get_delhi_forecast(
         "regulatory_framework": "National Ambient Air Quality Standards (NAAQS 2009 / MoEFCC Notification)"
     }
     
+    active_us_aqi = target_station.get("aqi_us") if target_station else cpcb_client.compute_us_aqi(forecast_initial_readings["pm25"])
+
     return {
         "city": location_label,
         "target_station": target_station,
         "composite_aqi": active_aqi,
+        "composite_aqi_us": active_us_aqi,
         "category": active_category,
         "pollutants": {
             "pm25": round(forecast_initial_readings["pm25"], 1),
