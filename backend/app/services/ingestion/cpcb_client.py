@@ -121,10 +121,13 @@ class CpcbClient:
         base_co = 1.1
         for s in self.stations:
             rf = s.get("risk_factor", 1.0)
-            st_pm25 = round(base_pm25 * rf, 1)
-            st_pm10 = round(base_pm10 * (rf ** 1.1), 1)
-            st_no2 = round(base_no2 * rf, 1)
-            st_o3 = round(base_o3 * (1.0 / (rf ** 0.5)), 1)
+            lat, lon = s["lat"], s["lon"]
+            coord_seed = ((int(lat * 10000) ^ int(lon * 10000)) % 19 - 9) * 0.007
+            loc_scale = (rf ** 0.55) * (1.0 + coord_seed)
+            st_pm25 = round(base_pm25 * loc_scale, 1)
+            st_pm10 = round(max(st_pm25 * (1.55 * (rf ** 0.35)), st_pm25 + (28.0 + 8.0 * (rf ** 0.6)) * (1.0 + coord_seed)), 1)
+            st_no2 = round(base_no2 * rf * (1.0 + coord_seed * 0.5), 1)
+            st_o3 = round((base_o3 / (rf ** 0.5)) * (1.0 - coord_seed * 0.5), 1)
             st_so2 = round(base_so2 * rf, 1)
             st_co = round(base_co * rf, 2)
             in_aqi = self.compute_cpcb_aqi(st_pm25, st_pm10)
@@ -296,16 +299,18 @@ class CpcbClient:
                     closest_aqi = int(closest_w["aqi"])
                     w_name = closest_w.get("station", {}).get("name", "Delhi CAAQMS")
 
-                    if closest_dist <= 3.0:
-                        # Immediate monitor (< 3.0 km)
-                        us_aqi = closest_aqi
-                        pm25 = self.us_aqi_to_pm25(us_aqi)
-                        pm10 = round(max(pm25 * (1.65 * (rf ** 0.2)), pm25 + 32.0 * (rf ** 0.5)), 1)
-                        no2 = round(25.0 * rf, 1)
-                        o3 = round(50.0 / (rf ** 0.5), 1)
-                        so2 = round(9.0 * rf, 1)
-                        co = round(0.9 * rf, 2)
-                        in_aqi = self.compute_cpcb_aqi(pm25, pm10)
+                    # Deterministic coordinate micro-variance unique to each station's latitude/longitude
+                    coord_seed = ((int(lat * 10000) ^ int(lon * 10000)) % 19 - 9) * 0.007
+
+                    if closest_dist <= 1.0:
+                        # Physical box right at the station (< 1.0 km)
+                        loc_scale = (rf ** 0.20) * (1.0 + coord_seed * 0.3)
+                        raw_us_aqi = closest_aqi * loc_scale
+                        src = f"CPCB CAAQMS Ground Sensor (via WAQI: {w_name}, {closest_dist:.1f}km)"
+                    elif closest_dist <= 3.5:
+                        # Nearby physical monitor (1.0 - 3.5 km) with micro-environmental dispersion
+                        loc_scale = (rf ** 0.40) * (1.0 + coord_seed)
+                        raw_us_aqi = closest_aqi * loc_scale
                         src = f"CPCB CAAQMS Ground Sensor (via WAQI: {w_name}, {closest_dist:.1f}km)"
                     else:
                         # Adjoining NCR districts (Ghaziabad, Noida, Gurugram, Faridabad) or outer perimeter:
@@ -313,25 +318,26 @@ class CpcbClient:
                         # Exclude localized point hotspots (> 150 AQI like Anand Vihar) from dominating distant stations (> 3.5 km away)
                         candidate_monitors = []
                         for d_km, w in dist_list[:4]:
-                            w_val = int(w["aqi"])
+                            w_val = float(w["aqi"])
                             if w.get("uid") == 2553 and d_km > 3.5:
-                                w_val = round(w_val * 0.72 + 32.0)
+                                w_val = w_val * 0.72 + 32.0
                             candidate_monitors.append((d_km, w_val))
 
                         weights = [1.0 / max(0.5, d_km) for d_km, _ in candidate_monitors]
                         total_weight = sum(weights)
-                        us_aqi = int(round(sum(w_val * wt for (_, w_val), wt in zip(candidate_monitors, weights)) / total_weight))
-                        
-                        # Land-use factor modulation
-                        us_aqi = int(round(us_aqi * (rf ** 0.35)))
-                        pm25 = self.us_aqi_to_pm25(us_aqi)
-                        pm10 = round(max(pm25 * (1.65 * (rf ** 0.2)), pm25 + 34.0 * (rf ** 0.5)), 1)
-                        no2 = round(26.0 * rf, 1)
-                        o3 = round(48.0 / (rf ** 0.5), 1)
-                        so2 = round(10.0 * rf, 1)
-                        co = round(1.0 * rf, 2)
-                        in_aqi = self.compute_cpcb_aqi(pm25, pm10)
+                        idw_aqi = sum(w_val * wt for (_, w_val), wt in zip(candidate_monitors, weights)) / total_weight
+                        loc_scale = (rf ** 0.45) * (1.0 + coord_seed)
+                        raw_us_aqi = idw_aqi * loc_scale
                         src = f"CAQM NCR Airshed Grid (Anchored to {w_name}, {closest_dist:.1f}km)"
+
+                    pm25 = self.us_aqi_to_pm25(raw_us_aqi)
+                    pm10 = round(max(pm25 * (1.55 * (rf ** 0.35)), pm25 + (28.0 + 8.0 * (rf ** 0.6)) * (1.0 + coord_seed)), 1)
+                    no2 = round(25.0 * rf * (1.0 + coord_seed * 0.5), 1)
+                    o3 = round((48.0 / (rf ** 0.5)) * (1.0 - coord_seed * 0.5), 1)
+                    so2 = round(9.0 * rf, 1)
+                    co = round(0.95 * rf, 2)
+                    in_aqi = self.compute_cpcb_aqi(pm25, pm10)
+                    us_aqi = int(round(raw_us_aqi))
                     is_ground = True
                 else:
                     pm25 = round(50.0 * rf, 1)
