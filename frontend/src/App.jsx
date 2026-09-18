@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   Wind, 
   Flame, 
@@ -52,12 +52,22 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   const [lastRefreshed, setLastRefreshed] = useState(null);
 
-  // Auto-refresh timer (default: 30 minutes = 1800 seconds)
-  const [refreshIntervalMinutes, setRefreshIntervalMinutes] = useState(30);
-  const [secondsRemaining, setSecondsRemaining] = useState(30 * 60);
+  // Auto-refresh timer (default: 10 minutes = 600 seconds for guaranteed fresh telemetry)
+  const [refreshIntervalMinutes, setRefreshIntervalMinutes] = useState(10);
+  const [secondsRemaining, setSecondsRemaining] = useState(10 * 60);
 
   // Seasonal Simulation Toggle: Live September Monsoon vs Winter Smog Episode
   const [winterSimulation, setWinterSimulation] = useState(false);
+
+  // Synchronized refs to avoid stale closures in setInterval callbacks
+  const selectedStationRef = useRef(selectedStation);
+  const winterSimulationRef = useRef(winterSimulation);
+  useEffect(() => {
+    selectedStationRef.current = selectedStation;
+  }, [selectedStation]);
+  useEffect(() => {
+    winterSimulationRef.current = winterSimulation;
+  }, [winterSimulation]);
 
   // Modals
   const [voiceOpen, setVoiceOpen] = useState(false);
@@ -75,6 +85,7 @@ export default function App() {
 
   const handleSelectStation = (st, dist = null) => {
     setSelectedStation(st);
+    selectedStationRef.current = st;
     if (dist !== null) {
       setUserDistance(dist);
     }
@@ -84,27 +95,29 @@ export default function App() {
       } catch (e) {
         console.warn("Storage error:", e);
       }
-      fetchData(st.station_id);
+      fetchData(st.station_id, true);
     } else {
       try {
         localStorage.removeItem('vaayu_station_id');
       } catch (e) {}
-      fetchData('');
+      fetchData('', true);
     }
   };
 
-  // Fetch API data
-  const fetchData = async (stationIdOverride = null) => {
+  // Fetch API data with optional forceRefresh cache-busting
+  const fetchData = async (stationIdOverride = null, forceRefresh = false) => {
     setLoading(true);
     try {
       const activeStationId = stationIdOverride !== null 
         ? stationIdOverride 
-        : (selectedStation?.station_id || '');
+        : (selectedStationRef.current?.station_id || '');
       const stationParam = activeStationId ? `&station_id=${activeStationId}` : '';
-      const forecastUrl = `${API_BASE}/api/v1/forecast/delhi?winter_simulation=${winterSimulation}${stationParam}`;
-      const attributionUrl = `${API_BASE}/api/v1/attribution${winterSimulation ? '?winter_simulation=true' : ''}`;
+      const refreshParam = forceRefresh ? '&force_refresh=true' : '';
+      const isWinter = winterSimulationRef.current;
+      const forecastUrl = `${API_BASE}/api/v1/forecast/delhi?winter_simulation=${isWinter}${stationParam}${refreshParam}`;
+      const attributionUrl = `${API_BASE}/api/v1/attribution${isWinter ? '?winter_simulation=true' : ''}`;
       const grapUrl = `${API_BASE}/api/v1/grap/status`;
-      const stationsUrl = `${API_BASE}/api/v1/forecast/stations`;
+      const stationsUrl = `${API_BASE}/api/v1/forecast/stations${forceRefresh ? '?force_refresh=true' : ''}`;
 
       const results = await Promise.allSettled([
         fetch(forecastUrl).then(r => r.ok ? r.json() : null),
@@ -123,17 +136,22 @@ export default function App() {
         setGrapData(results[2].value);
       }
       if (results[3].status === 'fulfilled' && results[3].value && Array.isArray(results[3].value)) {
-        setStations(results[3].value);
-        // Check if user previously locked onto a station
+        const freshStations = results[3].value;
+        setStations(freshStations);
+        
+        // Always synchronize selectedStation with the latest live station object from the fresh list
         try {
-          const savedId = localStorage.getItem('vaayu_station_id');
-          if (savedId && results[3].value.length && !selectedStation) {
-            const match = results[3].value.find(s => s.station_id === savedId || s.id === savedId);
-            if (match) {
-              setSelectedStation(match);
+          const activeId = selectedStationRef.current?.station_id || selectedStationRef.current?.id || localStorage.getItem('vaayu_station_id');
+          if (activeId && freshStations.length) {
+            const freshMatch = freshStations.find(s => s.station_id === activeId || s.id === activeId);
+            if (freshMatch) {
+              setSelectedStation(freshMatch);
+              selectedStationRef.current = freshMatch;
             }
           }
-        } catch (e) {}
+        } catch (e) {
+          console.warn("Error syncing selected station:", e);
+        }
       }
 
       setLastRefreshed(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
@@ -149,14 +167,17 @@ export default function App() {
     fetchData();
   }, [winterSimulation]);
 
-  // Auto-refresh countdown timer effect
+  // Auto-refresh countdown timer effect (guaranteed 10-minute live telemetry cycle)
   useEffect(() => {
     if (refreshIntervalMinutes === 0) return; // Manual mode
+
+    setSecondsRemaining(refreshIntervalMinutes * 60);
 
     const timer = setInterval(() => {
       setSecondsRemaining((prev) => {
         if (prev <= 1) {
-          fetchData();
+          // Trigger live fresh ingestion
+          fetchData(null, true);
           return refreshIntervalMinutes * 60;
         }
         return prev - 1;
@@ -305,8 +326,8 @@ export default function App() {
             <button 
               className="btn-zen" 
               style={{ padding: '8px', borderRadius: '50%' }}
-              onClick={fetchData}
-              title={`Live Reload (Last updated: ${lastRefreshed || 'Just now'})`}
+              onClick={() => fetchData(null, true)}
+              title={`Live Force Reload (Last updated: ${lastRefreshed || 'Just now'})`}
             >
               <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
             </button>
@@ -371,7 +392,7 @@ export default function App() {
               {winterSimulation ? '🔥 Winter Smog Sim (Stubble Influx)' : '🌿 Live Sept Monsoon (Current)'}
             </button>
 
-            {/* 30-Minute Auto-Refresh Control */}
+            {/* Guaranteed Live Cycle Auto-Refresh Control */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
               <span style={{ display: 'flex', alignItems: 'center', gap: '4px', color: 'var(--text-secondary)' }}>
                 <Clock size={13} /> Refresh:
@@ -392,9 +413,10 @@ export default function App() {
                   color: 'var(--text-primary)'
                 }}
               >
+                <option value={5}>5m</option>
+                <option value={10}>10m (Live Cycle)</option>
                 <option value={15}>15m</option>
                 <option value={30}>30m</option>
-                <option value={60}>60m</option>
                 <option value={0}>Manual</option>
               </select>
               {refreshIntervalMinutes > 0 && (

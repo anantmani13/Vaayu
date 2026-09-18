@@ -1,5 +1,6 @@
 import httpx
 import logging
+from pathlib import Path
 from typing import List, Dict, Any
 from datetime import datetime, timezone
 from backend.app.core.config import settings
@@ -84,10 +85,10 @@ class CpcbClient:
     def __init__(self):
         self.stations = ALL_40_DELHI_NCR_STATIONS
         self.waqi_token = settings.WAQI_API_TOKEN
-        self.cache_file = "backend/app/data/last_known_stations_cache.json"
+        self.cache_file = Path(__file__).resolve().parent.parent.parent / "data" / "last_known_stations_cache.json"
         self.cached_stations = self._load_disk_cache() or self._generate_initial_baseline()
         self.last_fetch_time = 0.0
-        self.cache_ttl_sec = 600.0  # 10 minutes cache to keep data fresh and fast
+        self.cache_ttl_sec = 300.0  # 5 minutes cache to guarantee fresh live ground data on every 10-minute cycle
 
     def _load_disk_cache(self) -> List[Dict[str, Any]]:
         import json, os

@@ -8,6 +8,7 @@ from backend.app.services.forecasting.inversion_module import inversion_module
 
 router = APIRouter()
 
+import asyncio
 import time
 from typing import Optional
 
@@ -33,11 +34,13 @@ async def get_delhi_forecast(
         if now - ts < _CACHE_TTL_SEC:
             return entry
 
-    # 1. Fetch live weather, stations, fires & chemistry
-    weather_data = await weather_client.fetch_meteorology()
-    stations = await cpcb_client.fetch_all_stations()
-    fires = await firms_client.fetch_active_fires(days=1)
-    chemistry_hourly = await cpcb_client.fetch_hourly_chemistry()
+    # 1. Fetch live weather, stations, fires & chemistry concurrently (~1.4s)
+    weather_data, stations, fires, chemistry_hourly = await asyncio.gather(
+        weather_client.fetch_meteorology(),
+        cpcb_client.fetch_all_stations(force_refresh=force_refresh),
+        firms_client.fetch_active_fires(days=1),
+        cpcb_client.fetch_hourly_chemistry()
+    )
     
     # 2. Average city readings
     avg_pm25 = sum(s["pm25"] for s in stations) / len(stations)
@@ -144,11 +147,12 @@ async def get_delhi_forecast(
 import math
 
 @router.get("/stations")
-async def get_stations() -> List[Dict[str, Any]]:
+async def get_stations(force_refresh: bool = False) -> List[Dict[str, Any]]:
     """
     Returns live readings across all 40 Delhi NCR continuous ambient air quality monitoring stations (CAAQMS).
+    Supports force_refresh=true to bypass internal cache.
     """
-    return await cpcb_client.fetch_all_stations()
+    return await cpcb_client.fetch_all_stations(force_refresh=force_refresh)
 
 @router.get("/stations/nearest")
 async def get_nearest_station(lat: float, lon: float) -> Dict[str, Any]:
