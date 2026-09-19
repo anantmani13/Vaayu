@@ -5,7 +5,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from backend.app.core.config import settings
 from backend.app.api.v1.endpoints import forecast, attribution, grap, advisory, historical
-
+# High-Resolution Coupled Environmental Intelligence System for Delhi NCR (Vaayu)
 app = FastAPI(
     title=settings.PROJECT_NAME,
     version=settings.VERSION,

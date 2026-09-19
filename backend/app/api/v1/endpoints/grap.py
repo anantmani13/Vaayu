@@ -14,21 +14,28 @@ class DispatchActionRequest(BaseModel):
     action_notes: str = "Approved for public dispatch across NCR municipal jurisdictions."
 
 @router.get("/status")
-async def get_grap_status() -> Dict[str, Any]:
+async def get_grap_status(winter_simulation: bool = False) -> Dict[str, Any]:
     """
     Returns current active GRAP stage, 72h forecast trajectory evaluation,
     and statutory compliance notice ready for officer sign-off.
+    Supports winter_simulation mode to trigger statutory Stage III / IV mandates.
     """
     stations = await cpcb_client.fetch_all_stations()
     weather_data = await weather_client.fetch_meteorology()
     
-    avg_pm25 = sum(s["pm25"] for s in stations) / len(stations)
-    avg_pm10 = sum(s["pm10"] for s in stations) / len(stations)
+    if winter_simulation:
+        avg_pm25 = 265.0
+        avg_pm10 = 395.0
+    else:
+        avg_pm25 = sum(s["pm25"] for s in stations) / len(stations)
+        avg_pm10 = sum(s["pm10"] for s in stations) / len(stations)
+
     current_aqi = cpcb_client.compute_cpcb_aqi(avg_pm25, avg_pm10)
     
     forecast_results = coupled_engine.run_coupled_forecast(
         current_readings={"pm25": avg_pm25, "pm10": avg_pm10},
-        weather_forecast=weather_data.get("hourly", [])
+        weather_forecast=weather_data.get("hourly", []),
+        is_winter_simulation=winter_simulation
     )
     
     forecast_aqi_72h = [p["composite_aqi"] for p in forecast_results.get("hourly_trajectory", [])]

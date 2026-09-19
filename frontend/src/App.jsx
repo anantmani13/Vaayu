@@ -116,7 +116,7 @@ export default function App() {
       const isWinter = winterSimulationRef.current;
       const forecastUrl = `${API_BASE}/api/v1/forecast/delhi?winter_simulation=${isWinter}${stationParam}${refreshParam}`;
       const attributionUrl = `${API_BASE}/api/v1/attribution${isWinter ? '?winter_simulation=true' : ''}`;
-      const grapUrl = `${API_BASE}/api/v1/grap/status`;
+      const grapUrl = `${API_BASE}/api/v1/grap/status${isWinter ? '?winter_simulation=true' : ''}`;
       const stationsUrl = `${API_BASE}/api/v1/forecast/stations${forceRefresh ? '?force_refresh=true' : ''}`;
 
       const results = await Promise.allSettled([
