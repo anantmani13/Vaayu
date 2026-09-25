@@ -284,19 +284,19 @@ export default function App() {
           </div>
 
           <div className="nav-controls">
-            <button className="btn-zen" onClick={() => setDataSourcesOpen(true)} title="View official data feeds, CPCB, NASA, Open-Meteo & audit guide">
+            <button className="btn-zen" onClick={() => setDataSourcesOpen(true)} title="View official data feeds: WAQI, CPCB, NASA FIRMS, Open-Meteo, Copernicus & audit guide">
               <Database size={15} color="var(--accent-health)" /> Data Sources & Audit
             </button>
 
-            <button className="btn-zen" onClick={() => setCompetitiveOpen(true)} title="Why Vaayu is superior to legacy static systems">
+            <button className="btn-zen" onClick={() => setCompetitiveOpen(true)} title="Why Vaayu is superior: direct WAQI/CPCB telemetry, 2-way physics, and GPS lock">
               <Award size={15} color="var(--accent-inversion)" /> Why Vaayu is Superior
             </button>
 
-            <button className="btn-zen" onClick={() => setGlossaryOpen(true)} title="View full forms of all scientific terms">
+            <button className="btn-zen" onClick={() => setGlossaryOpen(true)} title="View full forms of all scientific terms: WAQI, NAQI, CAAQMS, WRF-Chem...">
               <BookOpen size={15} color="var(--accent-health)" /> Full Forms & Glossary
             </button>
 
-            <button className="btn-zen" onClick={() => setAssurityOpen(true)} title="Data sources, active fires satellite verification, and NASA FIRMS validation">
+            <button className="btn-zen" onClick={() => setAssurityOpen(true)} title="WAQI ground sensor verification, active fires satellite telemetry, and NASA FIRMS validation">
               <ShieldCheck size={15} color="var(--accent-plume)" /> Data Assurity & Satellite Verification
             </button>
 
@@ -503,16 +503,33 @@ export default function App() {
                 <span>Fine (PM2.5): <b className="mono">{displayPm25} µg/m³</b></span>
                 <span>•</span>
                 <span>Coarse (PM10): <b className="mono">{displayPm10} µg/m³</b></span>
+              </div>
+              <div style={{ fontSize: '0.6875rem', color: 'var(--text-faint)', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                <span>
+                  Feed: <strong style={{ color: 'var(--text-secondary)' }}>{selectedStation?.data_source || 'CPCB CAAQMS Composite (via WAQI Real-Time Feed)'}</strong>
+                </span>
                 {selectedStation?.cpcb_url && (
-                  <a 
-                    href={selectedStation.cpcb_url} 
-                    target="_blank" 
-                    rel="noopener noreferrer" 
-                    style={{ color: 'var(--accent-wind)', textDecoration: 'underline', fontSize: '0.7rem', fontWeight: 600 }}
-                  >
-                    Verify on CPCB Portal ↗
-                  </a>
+                  <>
+                    <span>•</span>
+                    <a 
+                      href={selectedStation.cpcb_url} 
+                      target="_blank" 
+                      rel="noopener noreferrer" 
+                      style={{ color: 'var(--accent-health)', textDecoration: 'underline', fontWeight: 600 }}
+                    >
+                      CPCB Portal ↗
+                    </a>
+                  </>
                 )}
+                <span>•</span>
+                <a 
+                  href="https://aqicn.org/city/delhi/" 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  style={{ color: 'var(--accent-wind)', textDecoration: 'underline', fontWeight: 600 }}
+                >
+                  WAQI Portal ↗
+                </a>
               </div>
             </div>
           </div>
@@ -699,7 +716,13 @@ export default function App() {
                         <div style={{ fontWeight: 600, fontSize: '0.8125rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
                           {st.name} {isSelected && <Check size={12} color="var(--accent-health)" />}
                         </div>
-                        <div style={{ fontSize: '0.6875rem', color: 'var(--text-faint)' }}>{st.station_type}</div>
+                        <div style={{ fontSize: '0.6875rem', color: 'var(--text-faint)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <span>{st.station_type}</span>
+                          <span>•</span>
+                          <span style={{ color: st.is_ground_sensor ? 'var(--aqi-good)' : 'var(--text-faint)', fontWeight: st.is_ground_sensor ? 600 : 400 }}>
+                            {st.is_ground_sensor ? 'WAQI Ground' : 'CAMS Grid'}
+                          </span>
+                        </div>
                       </div>
                       <div style={{ textAlign: 'right' }}>
                         <span className="mono" style={{
@@ -756,7 +779,7 @@ export default function App() {
         <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
           <div>
             <strong>Vaayu (वायु)</strong> — Smart India Hackathon Project. 
-            Coupled Weather-Chemistry Forecasting • WRF-Chem Emulation • ICMR Grounded RAG.
+            Coupled Weather-Chemistry Forecasting • WAQI & CPCB Ground Ingestion • WRF-Chem Emulation • ICMR Grounded RAG.
           </div>
           <div className="mono" style={{ display: 'flex', gap: '12px' }}>
             <span onClick={() => setDataSourcesOpen(true)} style={{ cursor: 'pointer', textDecoration: 'underline' }}>

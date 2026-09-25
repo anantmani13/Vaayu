@@ -54,6 +54,13 @@ export default function ModelVerificationModal({ isOpen, onClose }) {
                 Gradient boosted tree decomposing PM2.5 into Stubble Burning (FIRMS), Vehicular (NO2), Industrial (SO2), and Dust fractions.
               </div>
             </div>
+
+            <div style={{ padding: '12px 14px', background: 'var(--color-surface-elevated)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--color-border-subtle)' }}>
+              <strong style={{ fontSize: '0.8125rem' }}>WAQI & CPCB Dual Telemetry Pipeline</strong>
+              <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '4px' }}>
+                1-Roundtrip geographic bounds ingest over 40 CAAQMS hubs with 15-minute smart caching (900s TTL) and 3-tier fallback to Copernicus CAMS.
+              </div>
+            </div>
           </div>
         </div>
 
@@ -141,6 +148,10 @@ export default function ModelVerificationModal({ isOpen, onClose }) {
             <div style={{ padding: '10px', background: 'var(--color-surface-elevated)', borderRadius: 'var(--radius-sm)' }}>
               <span style={{ color: 'var(--text-faint)' }}>Active CAAQMS Stations:</span>
               <div style={{ fontWeight: 600 }}>40 Stations (Delhi NCR)</div>
+            </div>
+            <div style={{ padding: '10px', background: 'var(--color-surface-elevated)', borderRadius: 'var(--radius-sm)' }}>
+              <span style={{ color: 'var(--text-faint)' }}>Telemetry Ingestion:</span>
+              <div style={{ fontWeight: 600, color: 'var(--accent-health)' }}>WAQI + CPCB (15m Cache)</div>
             </div>
             <div style={{ padding: '10px', background: 'var(--color-surface-elevated)', borderRadius: 'var(--radius-sm)' }}>
               <span style={{ color: 'var(--text-faint)' }}>Inference Latency:</span>

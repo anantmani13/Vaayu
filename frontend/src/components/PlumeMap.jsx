@@ -278,10 +278,15 @@ export default function PlumeMap({
             <div style="font-size: 10px; color: #777; margin-top: 6px;">
               Type: ${st.station_type}
             </div>
-            <div style="margin-top: 8px; padding-top: 6px; border-top: 1px solid #eee; display: flex; justify-content: space-between; align-items: center;">
-              <a href="${st.cpcb_url || 'https://app.cpcbccr.com/AQI_India/'}" target="_blank" rel="noopener noreferrer" style="color: #2E7D32; text-decoration: underline; font-weight: 600; font-size: 11px;">
-                Verify on CPCB Portal →
-              </a>
+            <div style="margin-top: 8px; padding-top: 6px; border-top: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; gap: 6px;">
+              <div style="display: flex; gap: 8px;">
+                <a href="${st.cpcb_url || 'https://app.cpcbccr.com/AQI_India/'}" target="_blank" rel="noopener noreferrer" style="color: #2E7D32; text-decoration: underline; font-weight: 600; font-size: 10px;">
+                  CPCB Portal →
+                </a>
+                <a href="https://aqicn.org/city/delhi/" target="_blank" rel="noopener noreferrer" style="color: #1976D2; text-decoration: underline; font-weight: 600; font-size: 10px;">
+                  WAQI Live →
+                </a>
+              </div>
               <span style="font-size: 9px; color: #888;">
                 ${st.is_ground_sensor ? 'WAQI Telemetry' : 'CAMS Grid'}
               </span>

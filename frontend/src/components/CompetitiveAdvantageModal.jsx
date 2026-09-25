@@ -1,5 +1,5 @@
 import React from 'react';
-import { Award, Check, X as Cross, Zap, ArrowRight, ShieldCheck, Cpu, Mic, Compass } from 'lucide-react';
+import { Award, Check, X as Cross, Zap, ArrowRight, ShieldCheck, Cpu, Mic, Compass, Radio, Navigation, Flame } from 'lucide-react';
 
 export default function CompetitiveAdvantageModal({ isOpen, onClose }) {
   if (!isOpen) return null;
@@ -10,6 +10,12 @@ export default function CompetitiveAdvantageModal({ isOpen, onClose }) {
       legacy: "Single city-wide 24h average bulletin; obscures micro-local hotspot spikes",
       vaayu: "40 CAAQMS monitoring stations across Delhi NCR with HTML5 GPS nearest-station lock",
       advantage: "Citizens receive hyper-local air quality calibrated to their exact neighborhood rather than a generic regional average."
+    },
+    {
+      feature: "Ground Telemetry & Dual AQI Scales",
+      legacy: "Single delayed portal scrape; masks differences between foreign apps and Indian norms",
+      vaayu: "Direct WAQI & CPCB ground stream ingestion with side-by-side Indian NAQI and US-EPA AQI",
+      advantage: "Total transparency eliminating public confusion between US-EPA (e.g. 155 Unhealthy) and Indian NAQI (e.g. 112 Moderate)."
     },
     {
       feature: "Atmospheric Physics Coupling",
@@ -36,20 +42,26 @@ export default function CompetitiveAdvantageModal({ isOpen, onClose }) {
       advantage: "Enables proactive municipal interventions (BS-III/IV diesel restrictions, water mist cannons) before smog peaks."
     },
     {
+      feature: "Year-Round Scenario Testing",
+      legacy: "System only works for current weather; impossible to test winter emergency response in off-season",
+      vaayu: "1-Click Winter NW Smog Simulation (315° NW wind at 10 km/h under severe capping inversion)",
+      advantage: "Enables disaster authorities, SIH evaluators, and researchers to stress-test stubble plume dispersion year-round."
+    },
+    {
       feature: "Diurnal Photochemical Modeling",
       legacy: "Static NO₂ and O₃ projections or single daily average index",
-      vaayu: "Full photochemical kinetics ($NO_2 + h\\nu \\to O_3$) with distinct afternoon ozone peaks vs nocturnal traffic accumulation",
+      vaayu: "Full photochemical kinetics (NO₂ + hν → O₃) with distinct afternoon ozone peaks vs nocturnal traffic accumulation",
       advantage: "Accurately predicts midday ground ozone spikes dangerous for asthmatic school children."
     }
   ];
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content" style={{ maxWidth: '850px', maxHeight: '90vh', overflowY: 'auto' }} onClick={(e) => e.stopPropagation()}>
+      <div className="modal-content" style={{ maxWidth: '860px', maxHeight: '90vh', overflowY: 'auto' }} onClick={(e) => e.stopPropagation()}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <Award size={24} color="var(--accent-health)" />
-            <h3 className="heading-serif" style={{ fontSize: '1.6rem' }}>Why Vaayu is Superior to Existing Solutions</h3>
+            <h3 className="heading-serif" style={{ fontSize: '1.6rem', margin: 0 }}>Why Vaayu is Superior to Existing Solutions</h3>
           </div>
           <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)' }}>
             <Cross size={20} />
@@ -57,7 +69,7 @@ export default function CompetitiveAdvantageModal({ isOpen, onClose }) {
         </div>
 
         <p style={{ fontSize: '0.8125rem', color: 'var(--text-secondary)', marginBottom: '20px', lineHeight: 1.5 }}>
-          Traditional government portals (CPCB Bulletin, SAFAR) and consumer weather apps (AccuWeather, IQAir) rely on static past observations or uncoupled linear models. Vaayu bridges atmospheric physics, satellite telemetry, and conversational vernacular intelligence.
+          Traditional government portals (CPCB Bulletin, SAFAR) and consumer weather apps (AccuWeather, IQAir) rely on static past observations or uncoupled linear models. Vaayu bridges <strong>direct WAQI / CPCB ground telemetry</strong>, <strong>two-way WRF-Chem atmospheric physics</strong>, <strong>NASA FIRMS satellite tracking</strong>, and <strong>conversational vernacular health intelligence</strong>.
         </p>
 
         {/* Feature Comparison Table */}
@@ -97,15 +109,25 @@ export default function CompetitiveAdvantageModal({ isOpen, onClose }) {
           </table>
         </div>
 
-        {/* 3 Core Scientific Breakthroughs */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '12px' }}>
+        {/* 4 Core Scientific Breakthroughs */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: '12px' }}>
           <div style={{ padding: '14px', background: 'var(--color-surface-elevated)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--color-border)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
               <Zap size={16} color="var(--accent-inversion)" />
-              <strong style={{ fontSize: '0.8125rem' }}>Physics-Informed Two-Way Feedback</strong>
+              <strong style={{ fontSize: '0.8125rem' }}>Physics-Informed Feedback</strong>
             </div>
             <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', margin: 0, lineHeight: 1.5 }}>
-              Standard models assume boundary layer height is independent of pollution. Vaayu mathematically couples aerosol optical extinction back into solar radiation absorption and nocturnal boundary layer compression.
+              Mathematically couples aerosol optical extinction back into solar radiation absorption and nocturnal boundary layer compression (+18% to +28% retention gain).
+            </p>
+          </div>
+
+          <div style={{ padding: '14px', background: 'var(--color-surface-elevated)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--color-border)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+              <Radio size={16} color="var(--accent-health)" />
+              <strong style={{ fontSize: '0.8125rem' }}>WAQI & CPCB Dual Telemetry</strong>
+            </div>
+            <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', margin: 0, lineHeight: 1.5 }}>
+              Pulls physical road sensor boxes from 40 CAAQMS hubs via WAQI with 15-minute smart caching, providing simultaneous Indian NAQI and US-EPA AQI.
             </p>
           </div>
 
@@ -115,7 +137,7 @@ export default function CompetitiveAdvantageModal({ isOpen, onClose }) {
               <strong style={{ fontSize: '0.8125rem' }}>Vernacular Voice Accessibility</strong>
             </div>
             <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', margin: 0, lineHeight: 1.5 }}>
-              Unlike technical dashboards that ordinary citizens cannot interpret, Vaayu provides real-time speech recognition in Hindi and English with ICMR-certified medical guidance spoken aloud with natural Indian cadence.
+              Web Speech Recognition in Hindi and English with ICMR-grounded pulmonology advice spoken aloud with natural Indian cadence.
             </p>
           </div>
 
@@ -125,7 +147,7 @@ export default function CompetitiveAdvantageModal({ isOpen, onClose }) {
               <strong style={{ fontSize: '0.8125rem' }}>Zero Black-Box Transparency</strong>
             </div>
             <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', margin: 0, lineHeight: 1.5 }}>
-              Every calculation provides its atmospheric sub-factors (PBL suppression, wind stagnation, thermal gradient, hygroscopic growth) and links directly to official NASA, CPCB, and Copernicus portals for verification.
+              Every calculation shows its atmospheric sub-factors (PBL suppression, wind shear, thermal gradient) and links directly to official NASA, CPCB, and WAQI portals.
             </p>
           </div>
         </div>
