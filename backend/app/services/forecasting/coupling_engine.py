@@ -95,10 +95,10 @@ class CoupledForecastingEngine:
             initial_cams_no2 = chemistry_forecast[0].get("no2", 25.0) if (chemistry_forecast and len(chemistry_forecast) > 0) else 25.0
             initial_cams_o3 = chemistry_forecast[0].get("o3", 55.0) if (chemistry_forecast and len(chemistry_forecast) > 0) else 55.0
 
-            pm25_calib = max(0.80, min(1.40, base_pm25 / max(20.0, initial_cams_pm25)))
-            pm10_calib = max(0.80, min(1.40, base_pm10 / max(30.0, initial_cams_pm10)))
-            no2_calib = max(0.70, min(1.60, base_no2 / max(10.0, initial_cams_no2)))
-            o3_calib = max(0.70, min(1.40, base_o3 / max(15.0, initial_cams_o3)))
+            pm25_calib = max(0.20, min(2.0, base_pm25 / max(15.0, initial_cams_pm25)))
+            pm10_calib = max(0.15, min(2.0, base_pm10 / max(25.0, initial_cams_pm10)))
+            no2_calib = max(0.25, min(2.0, base_no2 / max(10.0, initial_cams_no2)))
+            o3_calib = max(0.25, min(2.0, base_o3 / max(15.0, initial_cams_o3)))
 
             if c_base:
                 step_base_pm25 = c_base["pm25"] * pm25_calib
@@ -117,14 +117,14 @@ class CoupledForecastingEngine:
 
             # --- STEP 1: Uncoupled Forward Dispersion ---
             ventilation_coeff_raw = max(200.0, eff_wind_spd * raw_pbl)
-            # Bound dispersion factor between 0.6 (high wind/clean) and 2.2 (extreme calm/trapping)
-            dispersion_factor_raw = max(0.6, min(2.2, 1200.0 / ventilation_coeff_raw))
+            # Bound dispersion factor between 0.7 and 1.6
+            dispersion_factor_raw = max(0.7, min(1.6, 900.0 / ventilation_coeff_raw))
             
             # Wind directional alignment: NW winds (300-340 deg) transport stubble smoke directly into Delhi
             wind_alignment_nw = max(0.0, math.cos(math.radians(wind_dir - 315.0)))
             external_stubble_influx = stubble_intensity * 65.0 * wind_alignment_nw
             
-            uncoupled_pm25 = round(step_base_pm25 * (0.85 + 0.15 * dispersion_factor_raw) + external_stubble_influx * 0.6, 1)
+            uncoupled_pm25 = round(step_base_pm25 * (0.88 + 0.12 * dispersion_factor_raw) + external_stubble_influx * 0.6, 1)
             uncoupled_trajectory.append({
                 "hour": h_step + 1,
                 "pm25": uncoupled_pm25
@@ -148,43 +148,40 @@ class CoupledForecastingEngine:
                 is_nighttime=is_night
             )
             isi = inv_state["inversion_severity_index"]
-            trapping_multiplier = 1.0 + (isi * 0.38)
+            trapping_multiplier = 1.0 + (isi * 0.35) if is_winter_simulation else 1.0 + (isi * 0.12)
             
             # --- STEP 3: Refined Coupled Concentrations ---
             ventilation_coeff_coupled = max(180.0, eff_wind_spd * coupled_pbl)
-            dispersion_factor_coupled = max(0.6, min(2.2, 1200.0 / ventilation_coeff_coupled))
+            dispersion_factor_coupled = max(0.7, min(1.6, 900.0 / ventilation_coeff_coupled))
             coupled_pm25 = round(
-                (step_base_pm25 * (0.80 + 0.20 * dispersion_factor_coupled) * trapping_multiplier)
+                (step_base_pm25 * (0.85 + 0.15 * dispersion_factor_coupled) * trapping_multiplier)
                 + (external_stubble_influx * (1.0 + isi * 0.35)),
                 1
             )
             
-            coarse_dust_boost = 14.0 * min(2.5, wind_spd / 2.5)
+            coarse_dust_boost = (14.0 * min(2.5, eff_wind_spd / 2.5)) if is_winter_simulation else (5.0 * min(2.0, eff_wind_spd / 3.0))
             coupled_pm10 = round(
                 max(
-                    (step_base_pm10 * (0.80 + 0.20 * dispersion_factor_coupled) * (1.0 + isi * 0.28)) + coarse_dust_boost,
+                    (step_base_pm10 * (0.85 + 0.15 * dispersion_factor_coupled) * (1.0 + isi * (0.25 if is_winter_simulation else 0.10))) + coarse_dust_boost,
                     coupled_pm25 * 1.35
                 ),
                 1
             )
             
             # --- Photochemical Dynamics for NO2 & O3 ---
-            # NO2 diurnal dynamics:
-            # - Spikes during traffic rush hours (morning and evening)
-            # - Undergoes photolysis in bright midday sun into O3
-            # - Moderately accumulates at night under low nocturnal mixing
-            rush_factor = 1.35 if (is_morning_rush or is_evening_rush) else (0.82 if is_midday_sun else 1.08)
-            coupled_no2 = round(step_base_no2 * rush_factor * (1.0 + isi * 0.18), 1)
-            
-            # Ozone (O3) dynamics:
-            # - Requires solar UV radiation: peak between 12:00 and 16:00
-            # - Suppressed at night due to lack of sunlight and titration by NO (NO + O3 -> NO2 + O2)
-            if 7 <= local_hour <= 18:
-                solar_rad_factor = math.sin((local_hour - 7) * math.pi / 11) ** 1.3
-                coupled_o3 = round(step_base_o3 * (0.35 + 1.25 * solar_rad_factor * (1.0 - isi * 0.25)), 1)
+            if c_base:
+                # CAMS incorporates comprehensive atmospheric photochemistry (NO2 photolysis & O3 formation)
+                coupled_no2 = round(step_base_no2 * (1.0 + isi * 0.10), 1)
+                coupled_o3 = round(min(150.0, step_base_o3 * (1.0 - isi * 0.12)), 1)
             else:
-                # Nocturnal depletion
-                coupled_o3 = round(step_base_o3 * 0.32 * max(0.6, 1.0 - (wind_spd < 1.5) * 0.3), 1)
+                # Synthetic diurnal photochemistry when numerical chemistry service is offline
+                rush_factor = 1.30 if (is_morning_rush or is_evening_rush) else (0.80 if is_midday_sun else 1.05)
+                coupled_no2 = round(step_base_no2 * rush_factor * (1.0 + isi * 0.15), 1)
+                if 7 <= local_hour <= 18:
+                    solar_rad_factor = math.sin((local_hour - 7) * math.pi / 11) ** 1.3
+                    coupled_o3 = round(min(140.0, step_base_o3 * (0.60 + 0.80 * solar_rad_factor * (1.0 - isi * 0.20))), 1)
+                else:
+                    coupled_o3 = round(step_base_o3 * 0.40 * max(0.6, 1.0 - (wind_spd < 1.5) * 0.3), 1)
             
             # Composite CPCB AQI & US EPA AQI
             composite_aqi = cpcb_client.compute_cpcb_aqi(coupled_pm25, coupled_pm10, coupled_no2, coupled_o3)

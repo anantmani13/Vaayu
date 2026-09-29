@@ -37,6 +37,7 @@ class WeatherClient:
                 "direct_normal_irradiance"
             ],
             "timezone": "Asia/Kolkata",
+            "wind_speed_unit": "ms",
             "forecast_days": 4 # 96 hours to comfortably cover 72h horizon
         }
         
