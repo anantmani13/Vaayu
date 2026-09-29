@@ -26,16 +26,15 @@ async def get_grap_status(winter_simulation: bool = False) -> Dict[str, Any]:
     if winter_simulation:
         avg_pm25 = 265.0
         avg_pm10 = 395.0
+        avg_no2 = 65.0
+        avg_o3 = 35.0
+        current_aqi = cpcb_client.compute_cpcb_aqi(avg_pm25, avg_pm10, avg_no2, avg_o3)
     else:
         avg_pm25 = sum(s["pm25"] for s in stations) / len(stations)
         avg_pm10 = sum(s["pm10"] for s in stations) / len(stations)
         avg_no2 = sum(s.get("no2", 25.0) for s in stations) / len(stations)
         avg_o3 = sum(s.get("o3", 50.0) for s in stations) / len(stations)
         current_aqi = cpcb_client.compute_cpcb_aqi(avg_pm25, avg_pm10, avg_no2, avg_o3)
-    else:
-        current_aqi = cpcb_client.compute_cpcb_aqi(avg_pm25, avg_pm10)
-        avg_no2 = 65.0
-        avg_o3 = 35.0
     
     forecast_results = coupled_engine.run_coupled_forecast(
         current_readings={"pm25": avg_pm25, "pm10": avg_pm10, "no2": avg_no2, "o3": avg_o3},
