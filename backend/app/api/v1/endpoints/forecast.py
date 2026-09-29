@@ -47,7 +47,7 @@ async def get_delhi_forecast(
     avg_pm10 = sum(s["pm10"] for s in stations) / len(stations)
     avg_no2 = sum(s["no2"] for s in stations) / len(stations)
     avg_o3 = sum(s["o3"] for s in stations) / len(stations)
-    composite_aqi = cpcb_client.compute_cpcb_aqi(avg_pm25, avg_pm10)
+    composite_aqi = cpcb_client.compute_cpcb_aqi(avg_pm25, avg_pm10, avg_no2, avg_o3)
     category = cpcb_client.get_aqi_category(composite_aqi)
     
     # Check if a specific station was requested

@@ -90,20 +90,21 @@ class CoupledForecastingEngine:
             
             # Atmospheric model trend ratio anchored to station's ground observation
             c_base = chemistry_forecast[h_step] if chemistry_forecast and h_step < len(chemistry_forecast) else None
-            initial_cams_pm25 = chemistry_forecast[0]["pm25"] if chemistry_forecast and len(chemistry_forecast) > 0 else 45.0
-            initial_cams_no2 = chemistry_forecast[0]["no2"] if chemistry_forecast and len(chemistry_forecast) > 0 else 25.0
-            initial_cams_o3 = chemistry_forecast[0]["o3"] if chemistry_forecast and len(chemistry_forecast) > 0 else 55.0
+            initial_cams_pm25 = chemistry_forecast[0]["pm25"] if (chemistry_forecast and len(chemistry_forecast) > 0) else 50.0
+            initial_cams_pm10 = chemistry_forecast[0].get("pm10", 120.0) if (chemistry_forecast and len(chemistry_forecast) > 0) else 120.0
+            initial_cams_no2 = chemistry_forecast[0].get("no2", 25.0) if (chemistry_forecast and len(chemistry_forecast) > 0) else 25.0
+            initial_cams_o3 = chemistry_forecast[0].get("o3", 55.0) if (chemistry_forecast and len(chemistry_forecast) > 0) else 55.0
+
+            pm25_calib = max(0.80, min(1.40, base_pm25 / max(20.0, initial_cams_pm25)))
+            pm10_calib = max(0.80, min(1.40, base_pm10 / max(30.0, initial_cams_pm10)))
+            no2_calib = max(0.70, min(1.60, base_no2 / max(10.0, initial_cams_no2)))
+            o3_calib = max(0.70, min(1.40, base_o3 / max(15.0, initial_cams_o3)))
 
             if c_base:
-                pm25_trend = c_base["pm25"] / max(15.0, initial_cams_pm25)
-                initial_cams_pm10 = chemistry_forecast[0].get("pm10", 75.0) if chemistry_forecast and len(chemistry_forecast) > 0 else 75.0
-                pm10_trend = (c_base.get("pm10", c_base["pm25"] * 1.45) / max(25.0, initial_cams_pm10)) if (chemistry_forecast and len(chemistry_forecast) > 0) else pm25_trend
-                no2_trend = c_base["no2"] / max(10.0, initial_cams_no2)
-                o3_trend = c_base["o3"] / max(15.0, initial_cams_o3)
-                step_base_pm25 = base_pm25 * pm25_trend
-                step_base_pm10 = base_pm10 * pm10_trend
-                step_base_no2 = base_no2 * no2_trend
-                step_base_o3 = base_o3 * o3_trend
+                step_base_pm25 = c_base["pm25"] * pm25_calib
+                step_base_pm10 = c_base.get("pm10", c_base["pm25"] * 1.45) * pm10_calib
+                step_base_no2 = c_base["no2"] * no2_calib
+                step_base_o3 = c_base["o3"] * o3_calib
             else:
                 step_base_pm25 = base_pm25
                 step_base_pm10 = base_pm10
@@ -185,8 +186,9 @@ class CoupledForecastingEngine:
                 # Nocturnal depletion
                 coupled_o3 = round(step_base_o3 * 0.32 * max(0.6, 1.0 - (wind_spd < 1.5) * 0.3), 1)
             
-            # Composite CPCB AQI
-            composite_aqi = cpcb_client.compute_cpcb_aqi(coupled_pm25, coupled_pm10)
+            # Composite CPCB AQI & US EPA AQI
+            composite_aqi = cpcb_client.compute_cpcb_aqi(coupled_pm25, coupled_pm10, coupled_no2, coupled_o3)
+            us_aqi_step = cpcb_client.compute_us_aqi(coupled_pm25)
             category = cpcb_client.get_aqi_category(composite_aqi)
             
             cumulative_aerosol_loading = 0.75 * cumulative_aerosol_loading + 0.25 * coupled_pm25
@@ -209,7 +211,9 @@ class CoupledForecastingEngine:
                 "pm10": coupled_pm10,
                 "no2": coupled_no2,
                 "o3": coupled_o3,
+                "aqi": composite_aqi,
                 "composite_aqi": composite_aqi,
+                "aqi_us": us_aqi_step,
                 "category": category,
                 "pbl_height_m": round(coupled_pbl, 1),
                 "inversion_severity_index": isi,
@@ -231,7 +235,9 @@ class CoupledForecastingEngine:
                 "pm10": pt["pm10"],
                 "o3": pt["o3"],
                 "no2": pt["no2"],
+                "aqi": pt["composite_aqi"],
                 "composite_aqi": pt["composite_aqi"],
+                "aqi_us": pt["aqi_us"],
                 "category": pt["category"],
                 "pbl_height_m": pt["pbl_height_m"],
                 "inversion_severity_index": pt["inversion_severity_index"],
